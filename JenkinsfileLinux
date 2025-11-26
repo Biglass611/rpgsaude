@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Verificar Repositório') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], useRemoteConfigs: [[url: 'https://github.com/Biglass611/auladocker.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], useRemoteConfigs: [[url: 'https://github.com/Biglass611/rpgsaude.git']]])
             }
         }
 
@@ -54,4 +54,5 @@ pipeline {
             echo 'Houve um erro durante o deploy.'
         }
     }
+
 }
