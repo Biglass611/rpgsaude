@@ -1,39 +1,44 @@
 
 package com.senac.rpgsaude.dto.request;
 import jakarta.validation.constraints.NotNull;
-public class PersonagemDTORequest {
+public class AvatarDTORequest {
     @NotNull
-    private Double vida;
+    private Double atributos1;
     @NotNull
-    private Double ouro;
+    private Double moedas;
     @NotNull
-    private Double xp;
+    private Double nivel;
     @NotNull
     private Integer usuarioId;
 
-    public Double getVida() {
-        return vida;
+
+
+    public Double getMoedas() {
+        return moedas;
     }
 
-    public void setVida(Double vida) {
-        this.vida = vida;
+    public void setMoedas(Double moedas) {
+        this.moedas = moedas;
     }
 
-    public Double getOuro() {
-        return ouro;
+    public Double getAtributos1() {
+        return atributos1;
     }
 
-    public void setOuro(Double ouro) {
-        this.ouro = ouro;
+    public void setAtributos1(Double atributos1) {
+        this.atributos1 = atributos1;
     }
 
-    public Double getXp() {
-        return xp;
+    public Double getNivel() {
+        return nivel;
     }
 
-    public void setXp(Double xp) {
-        this.xp = xp;
+    public void setNivel(Double nivel) {
+        this.nivel = nivel;
     }
+
+
+
 
     public Integer getUsuarioId() {
         return usuarioId;

@@ -1,14 +1,14 @@
 package com.senac.rpgsaude.repository;
 
-import com.senac.rpgsaude.entity.Missao;
-import com.senac.rpgsaude.entity.Personagem;
+import com.senac.rpgsaude.entity.Dungeon;
+import com.senac.rpgsaude.entity.Avatar;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface MissaoRepository extends JpaRepository<Missao, Integer> {
+public interface DungeonRepository extends JpaRepository<Dungeon, Integer> {
 
-    List<Missao> findByPersonagemAndStatus(Personagem personagem, int status);
+    List<Dungeon> findByAvatarAndStatus(Avatar avatar, int status);
 }

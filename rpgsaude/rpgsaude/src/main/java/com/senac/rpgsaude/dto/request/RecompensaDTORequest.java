@@ -3,7 +3,7 @@ package com.senac.rpgsaude.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public class PremioDTORequest {
+public class RecompensaDTORequest {
     @NotNull
     private double preco;
     @NotBlank

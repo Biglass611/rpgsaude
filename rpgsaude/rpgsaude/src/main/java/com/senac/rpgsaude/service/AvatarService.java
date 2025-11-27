@@ -1,14 +1,10 @@
 package com.senac.rpgsaude.service;
 
-import com.senac.rpgsaude.dto.request.PersonagemDTORequest;
-import com.senac.rpgsaude.dto.response.PersonagemDTOResponse;
-import com.senac.rpgsaude.entity.Personagem;
-import com.senac.rpgsaude.entity.RegistroOuro;
-import com.senac.rpgsaude.entity.RegistroXp;
+import com.senac.rpgsaude.dto.request.AvatarDTORequest;
+import com.senac.rpgsaude.dto.response.AvatarDTOResponse;
+import com.senac.rpgsaude.entity.Avatar;
 import com.senac.rpgsaude.entity.Usuario;
-import com.senac.rpgsaude.repository.PersonagemRepository;
-import com.senac.rpgsaude.repository.RegistroOuroRepository;
-import com.senac.rpgsaude.repository.RegistroXpRepository;
+import com.senac.rpgsaude.repository.AvatarRepository;
 import com.senac.rpgsaude.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
@@ -20,86 +16,89 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class PersonagemService {
+public class AvatarService {
 
-    private final PersonagemRepository personagemRepository;
+    private final AvatarRepository avatarRepository;
     private final UsuarioRepository usuarioRepository;
-    private final RegistroOuroRepository registroOuroRepository;
-    private final RegistroXpRepository registroXpRepository;
     private final ModelMapper modelMapper;
 
+    // Removidos: AvatarMoedasRepository e AtributosRepository (não existem mais)
     @Autowired
-    public PersonagemService(PersonagemRepository personagemRepository, UsuarioRepository usuarioRepository, RegistroOuroRepository registroOuroRepository, RegistroXpRepository registroXpRepository, ModelMapper modelMapper) {
-        this.personagemRepository = personagemRepository;
+    public AvatarService(AvatarRepository avatarRepository, UsuarioRepository usuarioRepository, ModelMapper modelMapper) {
+        this.avatarRepository = avatarRepository;
         this.usuarioRepository = usuarioRepository;
-        this.registroOuroRepository = registroOuroRepository;
-        this.registroXpRepository = registroXpRepository;
         this.modelMapper = modelMapper;
     }
 
     @Transactional
-    public PersonagemDTOResponse criarPersonagem(PersonagemDTORequest personagemDTORequest) {
-        Usuario usuario = usuarioRepository.findById(personagemDTORequest.getUsuarioId())
-                .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + personagemDTORequest.getUsuarioId() + " não encontrado."));
+    public AvatarDTOResponse criarAvatar(AvatarDTORequest avatarDTORequest) {
+        Usuario usuario = usuarioRepository.findById(avatarDTORequest.getUsuarioId())
+                .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + avatarDTORequest.getUsuarioId() + " não encontrado."));
 
-        RegistroOuro registroOuro = new RegistroOuro();
-        registroOuro.setQuantidade(0.0);
-        RegistroOuro savedRegistroOuro = registroOuroRepository.save(registroOuro);
+        Avatar avatar = new Avatar();
 
-        RegistroXp registroXp = new RegistroXp();
-        registroXp.setQuantidade(0.0);
-        RegistroXp savedRegistroXp = registroXpRepository.save(registroXp);
+        // Conversão de Tipos: O DTO manda Double, mas o Banco é Integer/String
+        if (avatarDTORequest.getNivel() != null) {
+            avatar.setNivel(avatarDTORequest.getNivel().intValue());
+        }
+        if (avatarDTORequest.getMoedas() != null) {
+            avatar.setMoedas(avatarDTORequest.getMoedas().intValue());
+        }
+        if (avatarDTORequest.getAtributos1() != null) {
+            // Converte o valor numérico para String, pois o banco é VARCHAR
+            avatar.setAtributos(String.valueOf(avatarDTORequest.getAtributos1()));
+        }
 
-        Personagem personagem = new Personagem();
-        personagem.setVida(personagemDTORequest.getVida());
-        personagem.setOuro(personagemDTORequest.getOuro());
-        personagem.setXp(Double.valueOf(personagemDTORequest.getXp()));
-        personagem.setUsuario(usuario);
-        personagem.setRegistroOuro(savedRegistroOuro);
-        personagem.setRegistroXp(savedRegistroXp);
+        // Define nome padrão se não vier no request (opcional)
+        avatar.setNome("Avatar de " + usuario.getEmail());
 
-        Personagem savedPersonagem = personagemRepository.save(personagem);
+        avatar.setUsuario(usuario);
 
-        return modelMapper.map(savedPersonagem, PersonagemDTOResponse.class);
+        // Salva diretamente na tabela 'avatar'
+        Avatar savedAvatar = avatarRepository.save(avatar);
+
+        return modelMapper.map(savedAvatar, AvatarDTOResponse.class);
     }
 
     @Transactional(readOnly = true)
-    public List<PersonagemDTOResponse> listarPersonagens() {
-        // Agora, findAll() usa a consulta JPQL personalizada
-        return personagemRepository.listarTodosPersonagens().stream()
-                .map(personagem -> modelMapper.map(personagem, PersonagemDTOResponse.class))
+    public List<AvatarDTOResponse> listarAvatar() {
+        return avatarRepository.listarTodosAvatares().stream()
+                .map(avatar -> modelMapper.map(avatar, AvatarDTOResponse.class))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public PersonagemDTOResponse listarPorId(Integer id) {
-        Personagem personagem = personagemRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Personagem com ID " + id + " não encontrado."));
-        return modelMapper.map(personagem, PersonagemDTOResponse.class);
+    public AvatarDTOResponse listarPorId(Long id) {
+        Avatar avatar = avatarRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + id + " não encontrado."));
+        return modelMapper.map(avatar, AvatarDTOResponse.class);
     }
 
     @Transactional
-    public PersonagemDTOResponse atualizarPersonagem(Integer id, PersonagemDTORequest personagemDTORequest) {
-        Personagem personagem = personagemRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Personagem com ID " + id + " não encontrado."));
+    public AvatarDTOResponse atualizarAvatar(Long id, AvatarDTORequest avatarDTORequest) {
+        Avatar avatar = avatarRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + id + " não encontrado."));
 
-        modelMapper.map(personagemDTORequest, personagem);
+        // Atualização manual para garantir conversão de tipos
+        if (avatarDTORequest.getNivel() != null) avatar.setNivel(avatarDTORequest.getNivel().intValue());
+        if (avatarDTORequest.getMoedas() != null) avatar.setMoedas(avatarDTORequest.getMoedas().intValue());
+        if (avatarDTORequest.getAtributos1() != null) avatar.setAtributos(String.valueOf(avatarDTORequest.getAtributos1()));
 
-        if (personagemDTORequest.getUsuarioId() != null) {
-            Usuario usuario = usuarioRepository.findById(personagemDTORequest.getUsuarioId())
-                    .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + personagemDTORequest.getUsuarioId() + " não encontrado."));
-            personagem.setUsuario(usuario);
+        if (avatarDTORequest.getUsuarioId() != null) {
+            Usuario usuario = usuarioRepository.findById(avatarDTORequest.getUsuarioId())
+                    .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + avatarDTORequest.getUsuarioId() + " não encontrado."));
+            avatar.setUsuario(usuario);
         }
 
-        Personagem updatedPersonagem = personagemRepository.save(personagem);
-        return modelMapper.map(updatedPersonagem, PersonagemDTOResponse.class);
+        Avatar updatedAvatar = avatarRepository.save(avatar);
+        return modelMapper.map(updatedAvatar, AvatarDTOResponse.class);
     }
 
     @Transactional
-    public void deletarPersonagem(Integer id) {
-        if (!personagemRepository.existsById(id)) {
-            throw new EntityNotFoundException("Personagem com ID " + id + " não encontrado para deleção.");
+    public void deletarAvatar(Long id) {
+        if (!avatarRepository.existsById(id)) {
+            throw new EntityNotFoundException("Avatar com ID " + id + " não encontrado.");
         }
-        personagemRepository.deleteById(id);
+        avatarRepository.deleteById(id);
     }
 }

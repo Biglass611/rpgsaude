@@ -1,6 +1,6 @@
-package com.senac.daht.dto.response;
+package com.senac.rpgsaude.dto.response;
 
-public class PremioDTOResponse {
+public class RecompensaDTOResponse {
     private int id;
     private double preco;
     private String nome;

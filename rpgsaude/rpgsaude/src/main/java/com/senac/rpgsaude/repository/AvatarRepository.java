@@ -1,7 +1,6 @@
 package com.senac.rpgsaude.repository;
 
-import com.senac.rpgsaude.entity.Personagem;
-import com.senac.rpgsaude.entity.Usuario;
+import com.senac.rpgsaude.entity.Avatar;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -12,14 +11,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PersonagemRepository extends JpaRepository<Personagem, Integer> {
-    @Query("SELECT p FROM Personagem p WHERE p.id IN (SELECT MIN(p2.id) FROM Personagem p2 GROUP BY p2.usuario.id)")
+public interface AvatarRepository extends JpaRepository<Avatar, Long> {
+
+    @Query("SELECT a FROM Avatar a WHERE a.id IN (SELECT MIN(a2.id) FROM Avatar a2 GROUP BY a2.usuario.id)")
     @Lock(LockModeType.NONE)
-    List<Personagem> listarTodosPersonagens();
+    List<Avatar> listarTodosAvatares();
 
     @Override
     @Lock(LockModeType.NONE)
-    Optional<Personagem> findById(Integer id);
-
-
+    Optional<Avatar> findById(Long id);
 }

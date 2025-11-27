@@ -26,7 +26,7 @@ public class DungeonController {
     @GetMapping("/listar")
     @Operation(summary = "Listar dungeons", description = "Endpoint para listar todas as dungeons")
     public ResponseEntity<List<DungeonDTOResponse>> listarMissoes() {
-        return ResponseEntity.ok(dungeonService.listarMissoes());
+        return ResponseEntity.ok(dungeonService.listarDungeon());
     }
 
     @GetMapping("/listarPorId/{id}")

@@ -1,6 +1,6 @@
-package com.senac.daht.dto.response;
+package com.senac.rpgsaude.dto.response;
 
-public class RegistroOuroDTOResponse {
+public class AvatarMoedasDTOResponse {
     private Long id;
     private Double quantidade;
     private int idPersonagem;

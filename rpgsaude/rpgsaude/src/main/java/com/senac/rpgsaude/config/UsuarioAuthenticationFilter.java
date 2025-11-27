@@ -1,8 +1,9 @@
-package com.senac.daht.config;
-import com.senac.daht.entity.Usuario;
-import com.senac.daht.repository.UsuarioRepository;
-import com.senac.daht.service.JwtTokenService;
-import com.senac.daht.service.UsuarioDetailsImpl;
+package com.senac.rpgsaude.config;
+
+import com.senac.rpgsaude.entity.Usuario;
+import com.senac.rpgsaude.repository.UsuarioRepository;
+import com.senac.rpgsaude.service.JwtTokenService;
+import com.senac.rpgsaude.service.UsuarioDetailsImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,35 +22,36 @@ import java.util.Arrays;
 public class UsuarioAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
-    private JwtTokenService jwtTokenService; // Service que definimos anteriormente
+    private JwtTokenService jwtTokenService;
 
     @Autowired
-    private UsuarioRepository userRepository; // Repository que definimos anteriormente
+    private UsuarioRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Verifica se o endpoint requer autenticação antes de processar a requisição
-        if (checkIfEndpointIsNotPublic(request)) {
-            String token = recoveryToken(request); // Recupera o token do cabeçalho Authorization da requisição
-            if (token != null) {
-                String subject = jwtTokenService.getSubjectFromToken(token); // Obtém o assunto (neste caso, o nome de usuário) do token
-                Usuario user = userRepository.findByEmail(subject).get(); // Busca o usuário pelo email (que é o assunto do token)
-                UsuarioDetailsImpl userDetails = new UsuarioDetailsImpl(user); // Cria um UserDetails com o usuário encontrado
 
-                // Cria um objeto de autenticação do Spring Security
-                Authentication authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
+        String token = recoveryToken(request); // Tenta pegar o token
 
-                // Define o objeto de autenticação no contexto de segurança do Spring Security
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                throw new RuntimeException("O token está ausente.");
+        if (token != null) {
+            try {
+                String subject = jwtTokenService.getSubjectFromToken(token);
+                Usuario user = userRepository.findByEmail(subject).orElse(null);
+
+                if (user != null) {
+                    UsuarioDetailsImpl userDetails = new UsuarioDetailsImpl(user);
+                    Authentication authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            } catch (Exception e) {
+                // Token inválido ou expirado. Não fazemos nada, o usuário segue como "não logado".
             }
         }
-        filterChain.doFilter(request, response); // Continua o processamento da requisição
+
+        filterChain.doFilter(request, response);
     }
 
-    // Recupera o token do cabeçalho Authorization da requisição
     private String recoveryToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null) {
@@ -57,11 +59,4 @@ public class UsuarioAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
-
-    // Verifica se o endpoint requer autenticação antes de processar a requisição
-    private boolean checkIfEndpointIsNotPublic(HttpServletRequest request) {
-        String requestURI = request.getRequestURI();
-        return !Arrays.asList(com.example.demo.config.SecurityConfig.ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).contains(requestURI);
-    }
-
 }

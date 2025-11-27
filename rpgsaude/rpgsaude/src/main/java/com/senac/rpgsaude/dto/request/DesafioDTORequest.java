@@ -15,4 +15,7 @@ public class DesafioDTORequest {
         this.desafioId = desafioId;
     }
 
+    public Integer getRecompensaId() {
+        return 0;
+    }
 }

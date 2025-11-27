@@ -2,7 +2,7 @@ package com.senac.rpgsaude.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 
-public class RegistroOuroDTORequest {
+public class AvatarMoedasDTORequest {
     @NotNull
     private Double quantidade;
     @NotNull

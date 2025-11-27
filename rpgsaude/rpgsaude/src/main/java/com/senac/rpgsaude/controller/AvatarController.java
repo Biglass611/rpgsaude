@@ -25,12 +25,14 @@ public class AvatarController {
     @GetMapping("/listar")
     @Operation(summary = "Listar avatares", description = "Endpoint para listar todos os avatares")
     public ResponseEntity<List<AvatarDTOResponse>> listarAvatares() {
-        return ResponseEntity.ok(avatarService.listarAvatares());
+        // CORRIGIDO: Chama 'listarAvatar' (que tem a lógica) em vez de 'listarAvatares' (que estava retornando vazio no service antigo)
+        return ResponseEntity.ok(avatarService.listarAvatar());
     }
 
     @GetMapping("/listarPorId/{id}")
     @Operation(summary = "Listar avatar por ID", description = "Endpoint para buscar um avatar pelo seu ID")
-    public ResponseEntity<AvatarDTOResponse> listarPorId(@PathVariable("id") Integer id) {
+    // CORRIGIDO: Tipo do ID alterado de Integer para Long
+    public ResponseEntity<AvatarDTOResponse> listarPorId(@PathVariable("id") Long id) {
         AvatarDTOResponse avatar = avatarService.listarPorId(id);
         return ResponseEntity.ok(avatar);
     }
@@ -38,14 +40,14 @@ public class AvatarController {
     @PostMapping("/criar")
     @Operation(summary = "Criar novo avatar", description = "Endpoint para criar um novo registro de avatar")
     public ResponseEntity<AvatarDTOResponse> criarAvatar(@Valid @RequestBody AvatarDTORequest avatarDTORequest) {
-       AvatarDTOResponse novoAvatar = avatarService.criarAvatar(avatarDTORequest);
-       return ResponseEntity.status(HttpStatus.CREATED).body(novoAvatar);
+        AvatarDTOResponse novoAvatar = avatarService.criarAvatar(avatarDTORequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoAvatar);
     }
 
     @PutMapping("/atualizar/{id}")
     @Operation(summary = "Atualizar avatar", description = "Endpoint para atualizar todos os dados de um avatar")
     public ResponseEntity<AvatarDTOResponse> atualizarAvatar(
-            @PathVariable("id") Integer id,
+            @PathVariable("id") Long id, // CORRIGIDO: Tipo do ID alterado de Integer para Long
             @Valid @RequestBody AvatarDTORequest avatarDTORequest) {
         AvatarDTOResponse avatarAtualizado = avatarService.atualizarAvatar(id, avatarDTORequest);
         return ResponseEntity.ok(avatarAtualizado);
@@ -53,7 +55,8 @@ public class AvatarController {
 
     @DeleteMapping("/deletar/{id}")
     @Operation(summary = "Deletar avatar", description = "Endpoint para deletar um avatar pelo seu ID")
-    public ResponseEntity<Void> deletarAvatar(@PathVariable("id") Integer id) {
+    // CORRIGIDO: Tipo do ID alterado de Integer para Long
+    public ResponseEntity<Void> deletarAvatar(@PathVariable("id") Long id) {
         avatarService.deletarAvatar(id);
         return ResponseEntity.noContent().build();
     }

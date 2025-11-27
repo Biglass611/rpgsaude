@@ -1,11 +1,10 @@
-package com.senac.daht.config;
+package com.senac.rpgsaude.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.modelmapper.PropertyMap;
-import com.senac.daht.dto.response.PersonagemDTOResponse;
-import com.senac.daht.entity.Personagem;
+import com.senac.rpgsaude.entity.Avatar;
 
 @Configuration
 public class ModelMapperConfig {
@@ -14,12 +13,12 @@ public class ModelMapperConfig {
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
 
-        // Mapeamento explícito para a conversão de Personagem para PersonagemDTOResponse
-        modelMapper.addMappings(new PropertyMap<Personagem, PersonagemDTOResponse>() {
+        // Mapeamento explícito para a conversão de Avatar para AvatarDTOResponse
+        modelMapper.addMappings(new PropertyMap<Avatar, com.senac.rpgsaude.dto.response.AvatarDTOResponse>() {
             @Override
             protected void configure() {
-                // Mapeia o nome do usuário aninhado na entidade Personagem para o DTO
-                map().setNomeUsuario(source.getUsuario().getNome());
+                // Mapeia o nome do usuário aninhado na entidade Avatar para o DTO
+                map().setNomeUsuario(source.getUsuario().getEmail());
             }
         });
 

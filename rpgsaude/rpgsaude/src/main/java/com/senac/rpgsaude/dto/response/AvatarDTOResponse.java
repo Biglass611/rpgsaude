@@ -1,9 +1,7 @@
-package com.senac.daht.dto.response;
+package com.senac.rpgsaude.dto.response;
 
 
-import jakarta.validation.constraints.NotNull;
-
-public class PersonagemDTOResponse {
+public class AvatarDTOResponse {
     private Long id;
     private Double vida;
     private Double ouro;

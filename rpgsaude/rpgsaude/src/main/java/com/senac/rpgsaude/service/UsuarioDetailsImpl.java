@@ -17,6 +17,11 @@ public class UsuarioDetailsImpl implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        // CORREÇÃO: Verifica se a lista de roles é nula ou vazia antes de tentar ler
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            return java.util.Collections.emptyList(); // Retorna lista vazia, sem quebrar
+        }
+
         return user.getRoles()
                 .stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))

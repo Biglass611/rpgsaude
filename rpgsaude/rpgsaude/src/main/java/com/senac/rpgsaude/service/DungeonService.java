@@ -1,11 +1,11 @@
 package com.senac.rpgsaude.service;
 
-import com.senac.rpgsaude.dto.request.MissaoDTORequest;
-import com.senac.rpgsaude.dto.response.MissaoDTOResponse;
-import com.senac.rpgsaude.entity.Missao;
-import com.senac.rpgsaude.entity.Personagem;
-import com.senac.rpgsaude.repository.MissaoRepository;
-import com.senac.rpgsaude.repository.PersonagemRepository;
+import com.senac.rpgsaude.dto.request.DungeonDTORequest;
+import com.senac.rpgsaude.dto.response.DungeonDTOResponse;
+import com.senac.rpgsaude.entity.Dungeon;
+import com.senac.rpgsaude.entity.Avatar;
+import com.senac.rpgsaude.repository.DungeonRepository;
+import com.senac.rpgsaude.repository.AvatarRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,81 +15,75 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class MissaoService {
-    private final MissaoRepository missaoRepository;
-    private final PersonagemRepository personagemRepository;
+public class DungeonService {
+    private final DungeonRepository dungeonRepository;
+    private final AvatarRepository avatarRepository;
 
     @Autowired
-    public MissaoService(MissaoRepository missaoRepository, PersonagemRepository personagemRepository) {
-        this.missaoRepository = missaoRepository;
-        this.personagemRepository = personagemRepository;
+    public DungeonService(DungeonRepository dungeonRepository, AvatarRepository avatarRepository) {
+        this.dungeonRepository = dungeonRepository;
+        this.avatarRepository = avatarRepository;
     }
 
-    public List<MissaoDTOResponse> listarMissoes() {
-        return missaoRepository.findAll().stream()
-                .map(this::toResponseDTO) // Converte manualmente para DTO de resposta
+    public List<DungeonDTOResponse> listarDungeon() {
+        return dungeonRepository.findAll().stream()
+                .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    public MissaoDTOResponse listarPorId(Integer id) {
-        Missao missao = missaoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Missão com ID " + id + " não encontrada."));
-        return toResponseDTO(missao); // Converte manualmente para DTO de resposta
+    public DungeonDTOResponse listarPorId(Integer id) {
+        Dungeon dungeon = dungeonRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Dungeon com ID " + id + " não encontrada."));
+        return toResponseDTO(dungeon);
     }
 
     @Transactional
-    public MissaoDTOResponse criarMissao(MissaoDTORequest missaoDTORequest) {
-        Missao missao = new Missao();
-        updateMissaoFromDto(missao, missaoDTORequest); // Cria e associa dados
+    public DungeonDTOResponse criarDungeon(DungeonDTORequest dungeonDTORequest) {
+        Dungeon dungeon = new Dungeon();
+        updateDungeonFromDto(dungeon, dungeonDTORequest);
 
-        Missao savedMissao = missaoRepository.save(missao);
-        return toResponseDTO(savedMissao); // Converte manualmente para DTO de resposta
+        Dungeon savedDungeon = dungeonRepository.save(dungeon);
+        return toResponseDTO(savedDungeon);
     }
 
     @Transactional
-    public MissaoDTOResponse atualizarMissao(Integer id, MissaoDTORequest missaoDTORequest) {
-        Missao missao = missaoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Missão com ID " + id + " não encontrada."));
+    public DungeonDTOResponse atualizarDungeon(Integer id, DungeonDTORequest dungeonDTORequest) {
+        Dungeon dungeon = dungeonRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Dungeon com ID " + id + " não encontrada."));
 
-        updateMissaoFromDto(missao, missaoDTORequest); // Atualiza e associa dados
+        updateDungeonFromDto(dungeon, dungeonDTORequest);
 
-        Missao updatedMissao = missaoRepository.save(missao);
-        return toResponseDTO(updatedMissao); // Converte manualmente para DTO de resposta
+        Dungeon updatedDungeon = dungeonRepository.save(dungeon);
+        return toResponseDTO(updatedDungeon);
     }
 
     @Transactional
-    public void deletarMissao(Integer id) {
-        missaoRepository.deleteById(id);
+    public void deletarDungeon(Integer id) {
+        dungeonRepository.deleteById(id);
     }
 
     // Métodos utilitários para conversão
-    private MissaoDTOResponse toResponseDTO(Missao missao) {
-        MissaoDTOResponse dto = new MissaoDTOResponse();
-        dto.setId(missao.getId());
-        dto.setDescricao(missao.getDescricao());
-        dto.setRepeticao(missao.getRepeticao());
-        dto.setDificuldade(missao.getDificuldade());
-        dto.setEfeito(missao.getEfeito());
-        dto.setDataFinalizacao(missao.getDataFinalizacao());
-        dto.setDataInicio(missao.getDataInicio());
-        dto.setStatus(missao.getStatus());
-        if (missao.getPersonagem() != null) {
-            dto.setNomePersonagem(missao.getPersonagem().getUsuario().getNome());
+    private DungeonDTOResponse toResponseDTO(Dungeon dungeon) {
+        DungeonDTOResponse dto = new DungeonDTOResponse();
+        dto.setId(dungeon.getId());
+        dto.setDificuldade(dungeon.getDificuldade());
+        dto.setStatus(dungeon.getStatus());
+        if (dungeon.getAvatar() != null) {
+            dto.setNomeAvatar(dungeon.getAvatar().getUsuario().getEmail());
         }
         return dto;
     }
 
-    private void updateMissaoFromDto(Missao missao, MissaoDTORequest dto) {
-        missao.setDescricao(dto.getDescricao());
-        missao.setRepeticao(dto.getRepeticao());
-        missao.setDificuldade(dto.getDificuldade());
-        missao.setEfeito(dto.getEfeito());
-        missao.setDataFinalizacao(dto.getDataFinalizacao());
-        missao.setDataInicio(dto.getDataInicio());
-        missao.setStatus(dto.getStatus());
+    private void updateDungeonFromDto(Dungeon dungeon, DungeonDTORequest dto) {
 
-        Personagem personagem = personagemRepository.findById(dto.getPersonagemId())
-                .orElseThrow(() -> new EntityNotFoundException("Personagem com ID " + dto.getPersonagemId() + " não encontrado."));
-        missao.setPersonagem(personagem);
+        dungeon.setDificuldade(dto.getDificuldade());
+        dungeon.setStatus(dto.getStatus());
+
+        // CORREÇÃO: Convertemos o Integer do DTO para Long, pois o AvatarRepository espera Long.
+        Long avatarId = Long.valueOf(dto.getAvatarId());
+
+        Avatar avatar = avatarRepository.findById(avatarId)
+                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + avatarId + " não encontrado."));
+        dungeon.setAvatar(avatar);
     }
 }

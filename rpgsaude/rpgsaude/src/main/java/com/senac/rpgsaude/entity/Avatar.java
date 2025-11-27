@@ -1,37 +1,33 @@
-
 package com.senac.rpgsaude.entity;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "personagem")
-public class Personagem {
+@Table(name = "avatar") // Nome correto da tabela
+public class Avatar {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "personagem_id")
+    @Column(name = "avatar_id") // Nome correto da PK
     private Long id;
 
-    @Column(name = "personagem_vida")
-    private Double vida;
+    @Column(name = "avatar_nome")
+    private String nome;
 
-    @Column(name = "personagem_ouro")
-    private Double ouro;
+    @Column(name = "avatar_nivel")
+    private Integer nivel;
 
-    @Column(name = "personagem_xp")
-    private Double xp;
+    @Column(name = "avatar_moedas")
+    private Integer moedas;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "registroouro_id", referencedColumnName = "registroouro_id", nullable = false)
-    private RegistroOuro registroOuro;
-
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "registroxp_id", referencedColumnName = "registroxp_id", nullable = false)
-    private RegistroXp registroXp;
+    @Column(name = "avatar_atributos")
+    private String atributos; // No banco é VARCHAR
 
     @OneToOne
     @JoinColumn(name = "usuario_id", referencedColumnName = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    // --- Getters e Setters ---
 
     public Long getId() {
         return id;
@@ -41,44 +37,36 @@ public class Personagem {
         this.id = id;
     }
 
-    public Double getVida() {
-        return vida;
+    public String getNome() {
+        return nome;
     }
 
-    public void setVida(Double vida) {
-        this.vida = vida;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
-    public Double getOuro() {
-        return ouro;
+    public Integer getNivel() {
+        return nivel;
     }
 
-    public void setOuro(Double ouro) {
-        this.ouro = ouro;
+    public void setNivel(Integer nivel) {
+        this.nivel = nivel;
     }
 
-    public Double getXp() {
-        return xp;
+    public Integer getMoedas() {
+        return moedas;
     }
 
-    public void setXp(Double xp) {
-        this.xp = xp;
+    public void setMoedas(Integer moedas) {
+        this.moedas = moedas;
     }
 
-    public RegistroOuro getRegistroOuro() {
-        return registroOuro;
+    public String getAtributos() {
+        return atributos;
     }
 
-    public void setRegistroOuro(RegistroOuro registroOuro) {
-        this.registroOuro = registroOuro;
-    }
-
-    public RegistroXp getRegistroXp() {
-        return registroXp;
-    }
-
-    public void setRegistroXp(RegistroXp registroXp) {
-        this.registroXp = registroXp;
+    public void setAtributos(String atributos) {
+        this.atributos = atributos;
     }
 
     public Usuario getUsuario() {

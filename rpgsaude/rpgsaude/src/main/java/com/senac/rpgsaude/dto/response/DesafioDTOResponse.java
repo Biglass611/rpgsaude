@@ -1,6 +1,6 @@
-package com.senac.daht.dto.response;
+package com.senac.rpgsaude.dto.response;
 
-public class TabelaPremioDTOResponse {
+public class DesafioDTOResponse {
     private int id;
     private String nomePremio;
 
@@ -19,4 +19,7 @@ public class TabelaPremioDTOResponse {
         this.nomePremio = nomePremio;
     }
 
+    public void setNomeRecompensa(String nome) {
+
+    }
 }

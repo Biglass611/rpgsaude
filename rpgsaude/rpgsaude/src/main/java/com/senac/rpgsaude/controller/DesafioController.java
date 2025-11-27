@@ -1,8 +1,10 @@
 package com.senac.rpgsaude.controller;
 
-import com.senac.rpgsaude.dto.request.DesafioPremioDTORequest;
-import com.senac.rpgsaude.dto.response.DesafioPremioDTOResponse;
-import com.senac.rpgsaude.service.DesafioPremioService;
+import com.senac.rpgsaude.dto.request.DesafioDTORequest;
+import com.senac.rpgsaude.dto.response.DesafioDTOResponse;
+import com.senac.rpgsaude.dto.response.DesafioDTOResponse;
+import com.senac.rpgsaude.service.DesafioService;
+import com.senac.rpgsaude.service.DesafioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -39,7 +41,7 @@ public class DesafioController {
     @Operation(summary = "Criar novo desafio", description = "Endpoint para criar um novo registro de desafio")
     public ResponseEntity<DesafioDTOResponse> criarDesafio(@Valid @RequestBody DesafioDTORequest desafioDTORequest) {
         DesafioDTOResponse novoDesafio = desafioService.criarDesafio(desafioDTORequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(novaDesafio);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoDesafio);
     }
 
 

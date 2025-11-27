@@ -1,31 +1,28 @@
 package com.senac.rpgsaude.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
+import java.time.LocalDate; // Mantido, mas não usado nos campos internos. Pode ser removido.
 
 public class DungeonDTORequest {
-    @NotBlank
-    private String descricao;
-    @NotNull
-    private int tipo;
-    @NotNull
+
+    @NotNull(message = "O ID do Avatar é obrigatório.")
+    private Integer avatarId;
+
+    @Min(value = 1, message = "A dificuldade deve ser maior ou igual a 1.")
     private int dificuldade;
 
-    public String getDescricao() {
-        return descricao;
+
+    private int status;
+
+
+
+    public Integer getAvatarId() {
+        return avatarId;
     }
 
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
-
-    public int getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(int tipo) {
-        this.tipo = tipo;
+    public void setAvatarId(Integer avatarId) {
+        this.avatarId = avatarId;
     }
 
     public int getDificuldade() {
@@ -43,27 +40,4 @@ public class DungeonDTORequest {
     public void setStatus(int status) {
         this.status = status;
     }
-
-    public Integer getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Integer usuarioId) {
-        this.usuarioId = usuarioId;
-    }
-
-    public Integer getDesafioId() {
-        return desafioId;
-    }
-
-    public void setDesafioId(Integer desafioId) {
-        this.desafioId = desafioId;
-    }
-
-    @NotNull
-    private int status;
-    @NotNull
-    private Integer usuarioId;
-    @NotNull
-    private Integer desafioId;
 }

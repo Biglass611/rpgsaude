@@ -1,13 +1,11 @@
 package com.senac.rpgsaude.service;
 
-import com.senac.rpgsaude.dto.request.TabelaPremioDTORequest;
-import com.senac.rpgsaude.dto.response.TabelaPremioDTOResponse;
-import com.senac.rpgsaude.entity.TabelaPremio;
-import com.senac.rpgsaude.entity.Missao;
-import com.senac.rpgsaude.entity.Premio;
-import com.senac.rpgsaude.repository.TabelaPremioRepository;
-import com.senac.rpgsaude.repository.MissaoRepository;
-import com.senac.rpgsaude.repository.PremioRepository;
+import com.senac.rpgsaude.dto.request.DesafioDTORequest;
+import com.senac.rpgsaude.dto.response.DesafioDTOResponse;
+import com.senac.rpgsaude.entity.Desafio;
+import com.senac.rpgsaude.entity.Recompensa;
+import com.senac.rpgsaude.repository.DesafioRepository;
+import com.senac.rpgsaude.repository.RecompensaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,52 +15,57 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class TabelaPremioService {
-    private final TabelaPremioRepository tabelaPremioRepository;
-    private final PremioRepository premioRepository;
+public class DesafioService {
+    private final DesafioRepository desafioRepository;
+    private final RecompensaRepository recompensaRepository;
     @Autowired
-    public TabelaPremioService(TabelaPremioRepository tabelaPremioRepository,  PremioRepository premioRepository) {
-        this.tabelaPremioRepository = tabelaPremioRepository;
-
-        this.premioRepository = premioRepository;
+    public DesafioService(DesafioRepository desafioRepository,  RecompensaRepository recompensaRepository) {
+        this.desafioRepository = desafioRepository;
+        this.recompensaRepository = recompensaRepository;
     }
 
-    public List<TabelaPremioDTOResponse> listarTabelasPremios() {
-        return tabelaPremioRepository.findAll().stream()
-                .map(this::toResponseDTO) // Converte manualmente para DTO de resposta
+    public List<DesafioDTOResponse> listarDesafios() {
+        return desafioRepository.findAll().stream()
+                .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    public TabelaPremioDTOResponse listarPorId(Integer id) {
-        TabelaPremio tabelaPremio = tabelaPremioRepository.findById(id)
+    public DesafioDTOResponse listarPorId(Integer id) {
+        Desafio desafio = desafioRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tabela de Prêmio com ID " + id + " não encontrada."));
-        return toResponseDTO(tabelaPremio); // Converte manualmente para DTO de resposta
+        return toResponseDTO(desafio);
     }
 
     @Transactional
-    public TabelaPremioDTOResponse criarTabelaPremio(TabelaPremioDTORequest tabelaPremioDTORequest) {
-        TabelaPremio tabelaPremio = new TabelaPremio();
-        updateTabelaPremioFromDto(tabelaPremio, tabelaPremioDTORequest); // Cria e associa dados
+    public DesafioDTOResponse criarDesafio(DesafioDTORequest desafioDTORequest) {
+        Desafio desafio = new Desafio();
+        updateDesafioFromDto(desafio, desafioDTORequest);
 
-        TabelaPremio savedTabelaPremio = tabelaPremioRepository.save(tabelaPremio);
-        return toResponseDTO(savedTabelaPremio); // Converte manualmente para DTO de resposta
+        Desafio savedDesafio = desafioRepository.save(desafio);
+        return toResponseDTO(savedDesafio);
     }
+
     @Transactional
-    public void deletarTabelaPremio(Integer id) {
-        tabelaPremioRepository.deleteById(id);
+    public void deletarDesafio(Integer id) {
+        desafioRepository.deleteById(id);
     }
-    private TabelaPremioDTOResponse toResponseDTO(TabelaPremio tabelaPremio) {
-        TabelaPremioDTOResponse dto = new TabelaPremioDTOResponse();
-        dto.setId(tabelaPremio.getId());
-        if (tabelaPremio.getPremio() != null) {
-            dto.setNomePremio(tabelaPremio.getPremio().getNome());
+
+    private DesafioDTOResponse toResponseDTO(Desafio desafio) {
+        DesafioDTOResponse dto = new DesafioDTOResponse();
+        dto.setId(desafio.getId());
+
+        // CORREÇÃO #1: Acessar a lista de recompensas e pegar o nome da primeira (ou tratar vazia)
+        if (desafio.getRecompensas() != null && !desafio.getRecompensas().isEmpty()) {
+            dto.setNomeRecompensa(desafio.getRecompensas().get(0).getNome());
         }
         return dto;
     }
 
-    private void updateTabelaPremioFromDto(TabelaPremio tabelaPremio, TabelaPremioDTORequest dto) {
-        Premio premio = premioRepository.findById(dto.getPremioId())
-                .orElseThrow(() -> new EntityNotFoundException("Prêmio com ID " + dto.getPremioId() + " não encontrado."));
-        tabelaPremio.setPremio(premio);
+    private void updateDesafioFromDto(Desafio desafio, DesafioDTORequest dto) {
+        Recompensa recompensa = recompensaRepository.findById(dto.getRecompensaId())
+                .orElseThrow(() -> new EntityNotFoundException("Prêmio com ID " + dto.getRecompensaId() + " não encontrado."));
+
+        // CORREÇÃO #2: O setter agora espera uma List<Recompensa> (OneToMany)
+        desafio.setRecompensas(List.of(recompensa));
     }
 }

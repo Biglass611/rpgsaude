@@ -1,9 +1,12 @@
 package com.senac.rpgsaude.service;
 
-import com.senac.rpgsaude.dto.request.RegistroXpDTORequest;
-import com.senac.rpgsaude.dto.response.RegistroXpDTOResponse;
-import com.senac.rpgsaude.entity.RegistroXp;
-import com.senac.rpgsaude.repository.RegistroXpRepository;
+import com.senac.rpgsaude.dto.request.AtributosDTORequest;
+import com.senac.rpgsaude.dto.request.AtributosDTORequest;
+import com.senac.rpgsaude.dto.response.AtributosDTOResponse;
+import com.senac.rpgsaude.entity.Atributos;
+import com.senac.rpgsaude.entity.Atributos;
+import com.senac.rpgsaude.repository.AtributosRepository;
+import com.senac.rpgsaude.repository.AtributosRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,45 +16,45 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class RegistroXpService {
-    private final RegistroXpRepository registroXpRepository;
+    public class AtributosService {
+    private final AtributosRepository atributosRepository;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public RegistroXpService(RegistroXpRepository registroXpRepository, ModelMapper modelMapper) {
-        this.registroXpRepository = registroXpRepository;
+    public AtributosService(AtributosRepository atributosRepository, ModelMapper modelMapper) {
+        this.atributosRepository = atributosRepository;
         this.modelMapper = modelMapper;
     }
 
-    public List<RegistroXpDTOResponse> listarRegistrosXp() {
-        return registroXpRepository.findAll().stream()
-                .map(registro -> modelMapper.map(registro, RegistroXpDTOResponse.class))
+    public List<AtributosDTOResponse> listarAtributoss() {
+        return atributosRepository.findAll().stream()
+                .map(atributos -> modelMapper.map(atributos, AtributosDTOResponse.class))
                 .collect(Collectors.toList());
     }
 
-    public RegistroXpDTOResponse listarPorId(Integer id) {
-        RegistroXp registroXp = registroXpRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Registro de XP com ID " + id + " não encontrado."));
-        return modelMapper.map(registroXp, RegistroXpDTOResponse.class);
+    public AtributosDTOResponse listarPorId(Integer id) {
+        Atributos atributos = atributosRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Atributos com ID " + id + " não encontrado."));
+        return modelMapper.map(atributos, AtributosDTOResponse.class);
     }
 
-    public RegistroXpDTOResponse criarRegistroXp(RegistroXpDTORequest registroXpDTORequest) {
-        RegistroXp registroXp = modelMapper.map(registroXpDTORequest, RegistroXp.class);
-        RegistroXp savedRegistroXp = registroXpRepository.save(registroXp);
-        return modelMapper.map(savedRegistroXp, RegistroXpDTOResponse.class);
+    public AtributosDTOResponse criarAtributos(AtributosDTORequest atributosDTORequest) {
+        Atributos atributos = modelMapper.map(atributosDTORequest, Atributos.class);
+        Atributos savedAtributos = atributosRepository.save(atributos);
+        return modelMapper.map(savedAtributos, AtributosDTOResponse.class);
     }
 
-    public RegistroXpDTOResponse atualizarRegistroXp(Integer id, RegistroXpDTORequest registroXpDTORequest) {
-        RegistroXp registroXp = registroXpRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Registro de XP com ID " + id + " não encontrado."));
+    public AtributosDTOResponse atualizarAtributos(Integer id, AtributosDTORequest atributosDTORequest) {
+        Atributos atributos = atributosRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Atributos com ID " + id + " não encontrado."));
 
-        modelMapper.map(registroXpDTORequest, registroXp);
+        modelMapper.map(atributosDTORequest, atributos);
 
-        RegistroXp updatedRegistroXp = registroXpRepository.save(registroXp);
-        return modelMapper.map(updatedRegistroXp, RegistroXpDTOResponse.class);
+        Atributos updatedAtributos = atributosRepository.save(atributos);
+        return modelMapper.map(updatedAtributos, AtributosDTOResponse.class);
     }
 
-    public void deletarRegistroXp(Integer id) {
-        registroXpRepository.deleteById(id);
+    public void deletarAtributos(Integer id) {
+        atributosRepository.deleteById(id);
     }
 }

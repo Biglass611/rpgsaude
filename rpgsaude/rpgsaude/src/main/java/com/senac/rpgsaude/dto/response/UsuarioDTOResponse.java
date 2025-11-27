@@ -1,4 +1,4 @@
-package com.senac.daht.dto.response;
+package com.senac.rpgsaude.dto.response;
 
 import java.time.LocalDate;
 
@@ -7,9 +7,7 @@ public class UsuarioDTOResponse {
     private String nome;
     private String email;
     private String telefone;
-    private LocalDate  dataNascimento;
     private int status;
-
     // Getters e Setters
     public int getId() {
         return id;
@@ -34,12 +32,6 @@ public class UsuarioDTOResponse {
     }
     public void setTelefone(String telefone) {
         this.telefone = telefone;
-    }
-    public LocalDate  getDataNascimento() {
-        return dataNascimento;
-    }
-    public void setDataNascimento(LocalDate dataNascimento) {
-        this.dataNascimento = dataNascimento;
     }
     public int getStatus() {
         return status;

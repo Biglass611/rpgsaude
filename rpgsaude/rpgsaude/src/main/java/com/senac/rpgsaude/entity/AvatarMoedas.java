@@ -3,14 +3,14 @@ package com.senac.rpgsaude.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "registroouro")
-public class RegistroOuro {
+@Table(name = "registromoeda")
+public class AvatarMoedas {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "registroouro_id")
+    @Column(name = "registromoeda_id")
     private Long id;
 
-    @Column(name = "registroouro_quantidade")
+    @Column(name = "registromoeda_quantidade")
     private Double quantidade;
 
     public Long getId() {

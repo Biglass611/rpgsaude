@@ -1,8 +1,8 @@
 package com.senac.rpgsaude.controller;
 
-import com.senac.rpgsaude.dto.request.RegistroMoedaDTORequest;
-import com.senac.rpgsaude.dto.response.RegistroMoedaDTOResponse;
-import com.senac.rpgsaude.service.RegistroMoedaService;
+import com.senac.rpgsaude.dto.request.AvatarMoedasDTORequest;
+import com.senac.rpgsaude.dto.response.AvatarMoedasDTOResponse;
+import com.senac.rpgsaude.service.AvatarMoedasService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -13,48 +13,48 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/registro-moeda")
-@Tag(name = "Registro de Moeda", description = "API para o gerenciamento de registros de moeda")
-public class RegistroMoedaController {
+@RequestMapping("api/avatar-moedas")
+@Tag(name = "Avatar de Moedas", description = "API para o gerenciamento de avatars de moedas")
+public class AvatarMoedasController {
 
-    private final RegistroMoedaService registroMoedaService;
+    private final AvatarMoedasService avatarMoedasService;
 
-    public RegistroMoedaController(RegistroMoedaService registroMoedaService) {
-        this.registroMoedaService = registroMoedaService;
+    public AvatarMoedasController(AvatarMoedasService avatarMoedasService) {
+        this.avatarMoedasService = avatarMoedasService;
     }
 
     @GetMapping("/listar")
-    @Operation(summary = "Listar registros de moeda", description = "Endpoint para listar todos os registros de moeda")
-    public ResponseEntity<List<RegistroMoedaDTOResponse>> listarRegistrosMoeda() {
-        return ResponseEntity.ok(registroMoedaService.listarRegistrosMoeda());
+    @Operation(summary = "Listar moeda de avatares", description = "Endpoint para listar todas moedas do avatar")
+    public ResponseEntity<List<AvatarMoedasDTOResponse>> listarAvatarsMoedas() {
+        return ResponseEntity.ok(avatarMoedasService.listarAvatarMoeda());
     }
 
     @GetMapping("/listarPorId/{id}")
-    @Operation(summary = "Listar registro de moeda por ID", description = "Endpoint para buscar um registro de moeda pelo seu ID")
-    public ResponseEntity<RegistroMoedaDTOResponse> listarPorId(@PathVariable("id") Integer id) {
-        return ResponseEntity.ok(registroMoedaService.listarPorId(id));
+    @Operation(summary = "Listar moeda de avatares por ID", description = "Endpoint para buscar moeda de avatares pelo seu ID")
+    public ResponseEntity<AvatarMoedasDTOResponse> listarPorId(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(avatarMoedasService.listarPorId(id));
     }
 
     @PostMapping("/criar")
-    @Operation(summary = "Criar novo registro de moeda", description = "Endpoint para criar um novo registro de moeda")
-    public ResponseEntity<RegistroMoedaDTOResponse> criarRegistroMoeda(@Valid @RequestBody RegistroMoedaDTORequest registroMoedaDTORequest) {
-        RegistroMoedaDTOResponse novoRegistroMoeda = registroMoedaService.criarRegistroMoeda(registroMoedaDTORequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(novoRegistroMoeda);
+    @Operation(summary = "Criar novo moeda de avatares", description = "Endpoint para criar moeda de avatares")
+    public ResponseEntity<AvatarMoedasDTOResponse> criarAvatarMoedas(@Valid @RequestBody AvatarMoedasDTORequest avatarMoedasDTORequest) {
+        AvatarMoedasDTOResponse novoAvatarMoedas = avatarMoedasService.criarAvatarMoedas(avatarMoedasDTORequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoAvatarMoedas);
     }
 
     @PutMapping("/atualizar/{id}")
-    @Operation(summary = "Atualizar registro de moeda", description = "Endpoint para atualizar todos os dados de um registro de moeda")
-    public ResponseEntity<RegistroMoedaDTOResponse> atualizarRegistroMoeda(
+    @Operation(summary = "Atualizar moeda de avatares", description = "Endpoint para atualizar todos os dados de um moeda de avatares")
+    public ResponseEntity<AvatarMoedasDTOResponse> atualizarAvatarMoedas(
             @PathVariable("id") Integer id,
-            @Valid @RequestBody RegistroMoedaDTORequest registroMoedaDTORequest) {
-        RegistroMoedaDTOResponse registroMoedaAtualizado = registroMoedaService.atualizarRegistroMoeda(id, registroMoedaDTORequest);
-        return ResponseEntity.ok(registroMoedaAtualizado);
+            @Valid @RequestBody AvatarMoedasDTORequest avatarMoedasDTORequest) {
+        AvatarMoedasDTOResponse avatarMoedasAtualizado = avatarMoedasService.atualizarAvatarMoedas(id, avatarMoedasDTORequest);
+        return ResponseEntity.ok(avatarMoedasAtualizado);
     }
 
     @DeleteMapping("/deletar/{id}")
-    @Operation(summary = "Deletar registro de moeda", description = "Endpoint para deletar um registro de moeda pelo seu ID")
-    public ResponseEntity<Void> deletarRegistroMoeda(@PathVariable("id") Integer id) {
-        registroMoedaService.deletarRegistroMoeda(id);
+    @Operation(summary = "Deletar moeda de avatares", description = "Endpoint para deletar uma moeda de avatar pelo seu ID")
+    public ResponseEntity<Void> deletarAvatarMoedas(@PathVariable("id") Integer id) {
+        avatarMoedasService.deletarAvatarMoedas(id);
         return ResponseEntity.noContent().build();
     }
 }

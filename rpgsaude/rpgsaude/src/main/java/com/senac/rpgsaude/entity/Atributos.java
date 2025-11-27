@@ -3,14 +3,14 @@ package com.senac.rpgsaude.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "registroxp")
-public class RegistroXp {
+@Table(name = "atributos")
+public class Atributos {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "registroxp_id")
+    @Column(name = "atributos_id")
     private Long id;
 
-    @Column(name = "registroxp_quantidade")
+    @Column(name = "atributos_quantidade")
     private Double quantidade;
 
     public Long getId() {

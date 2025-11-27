@@ -1,9 +1,9 @@
 package com.senac.rpgsaude.service;
 
-import com.senac.rpgsaude.dto.request.PremioDTORequest;
-import com.senac.rpgsaude.dto.response.PremioDTOResponse;
-import com.senac.rpgsaude.entity.Premio;
-import com.senac.rpgsaude.repository.PremioRepository;
+import com.senac.rpgsaude.dto.request.RecompensaDTORequest;
+import com.senac.rpgsaude.dto.response.RecompensaDTOResponse;
+import com.senac.rpgsaude.entity.Recompensa;
+import com.senac.rpgsaude.repository.RecompensaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,44 +13,44 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class PremioService {
-    private final PremioRepository premioRepository;
+public class RecompensaService {
+    private final RecompensaRepository recompensaRepository;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public PremioService(PremioRepository premioRepository, ModelMapper modelMapper) {
-        this.premioRepository = premioRepository;
+    public RecompensaService(RecompensaRepository recompensaRepository, ModelMapper modelMapper) {
+        this.recompensaRepository = recompensaRepository;
         this.modelMapper = modelMapper;
     }
 
-    public List<PremioDTOResponse> listarPremios() {
-        return premioRepository.findAll().stream()
-                .map(premio -> modelMapper.map(premio, PremioDTOResponse.class))
+    public List<RecompensaDTOResponse> listarRecompensas() {
+        return recompensaRepository.findAll().stream()
+                .map(recompensa -> modelMapper.map(recompensa, RecompensaDTOResponse.class))
                 .collect(Collectors.toList());
     }
 
-    public PremioDTOResponse listarPorId(Integer id) {
-        Premio premio = premioRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Prêmio com ID " + id + " não encontrado."));
-        return modelMapper.map(premio, PremioDTOResponse.class);
+    public RecompensaDTOResponse listarPorId(Integer id) {
+        Recompensa recompensa = recompensaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Recompensa com ID " + id + " não encontrado."));
+        return modelMapper.map(recompensa, RecompensaDTOResponse.class);
     }
 
-    public PremioDTOResponse criarPremio(PremioDTORequest premioDTORequest) {
-        Premio premio = modelMapper.map(premioDTORequest, Premio.class);
-        Premio savedPremio = premioRepository.save(premio);
-        return modelMapper.map(savedPremio, PremioDTOResponse.class);
+    public RecompensaDTOResponse criarRecompensa(RecompensaDTORequest recompensaDTORequest) {
+        Recompensa recompensa = modelMapper.map(recompensaDTORequest, Recompensa.class);
+        Recompensa savedRecompensa = recompensaRepository.save(recompensa);
+        return modelMapper.map(savedRecompensa, RecompensaDTOResponse.class);
     }
 
-    public PremioDTOResponse atualizarPremio(Integer id, PremioDTORequest premioDTORequest) {
-        Premio premio = premioRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Prêmio com ID " + id + " não encontrado."));
+    public RecompensaDTOResponse atualizarRecompensa(Integer id, RecompensaDTORequest recompensaDTORequest) {
+        Recompensa recompensa = recompensaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Recompensa com ID " + id + " não encontrado."));
 
-        modelMapper.map(premioDTORequest, premio);
-        Premio updatedPremio = premioRepository.save(premio);
-        return modelMapper.map(updatedPremio, PremioDTOResponse.class);
+        modelMapper.map(recompensaDTORequest, recompensa);
+        Recompensa updatedRecompensa = recompensaRepository.save(recompensa);
+        return modelMapper.map(updatedRecompensa, RecompensaDTOResponse.class);
     }
 
-    public void deletarPremio(Integer id) {
-        premioRepository.deleteById(id);
+    public void deletarRecompensa(Integer id) {
+        recompensaRepository.deleteById(id);
     }
 }

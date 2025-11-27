@@ -20,10 +20,11 @@ public class Dungeon {
     private int dificuldade;
 
     @ManyToOne
-    @JoinColumn(name = "avatar_id", referencedColumnName = "avatar_id")
+    @JoinColumn(name = "avatar_id")
     private Avatar avatar;
+
     @ManyToOne
-    @JoinColumn(name = "desafio_id", referencedColumnName = "desafio_id")
+    @JoinColumn(name = "desafio_id")
     private Desafio desafio;
 
     public int getId() {
@@ -41,7 +42,7 @@ public class Dungeon {
     public void setNome(String nome) {
         this.nome = nome;
     }
-    
+
     public int getDificuldade() {
         return dificuldade;
     }
@@ -64,5 +65,13 @@ public class Dungeon {
 
     public void setAvatar(Avatar avatar) {
         this.avatar = avatar;
+    }
+
+    public Desafio getDesafio() {
+        return desafio;
+    }
+
+    public void setDesafio(Desafio desafio) {
+        this.desafio = desafio;
     }
 }

@@ -2,11 +2,11 @@ package com.senac.rpgsaude.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 
-public class RegistroXpDTORequest {
+public class AtributosDTORequest {
     @NotNull
     private Double quantidade;
     @NotNull
-    private Integer personagemId; // Chave estrangeira
+    private Integer avatarId; // Chave estrangeira
 
     // Getters e Setters
     public Double getQuantidade() {
@@ -15,10 +15,10 @@ public class RegistroXpDTORequest {
     public void setQuantidade(Double quantidade) {
         this.quantidade = quantidade;
     }
-    public Integer getPersonagemId() {
-        return personagemId;
+    public Integer getAvatarId() {
+        return avatarId;
     }
-    public void setPersonagemId(Integer personagemId) {
-        this.personagemId = personagemId;
+    public void setAvatarId(Integer avatarId) {
+        this.avatarId = avatarId;
     }
 }
