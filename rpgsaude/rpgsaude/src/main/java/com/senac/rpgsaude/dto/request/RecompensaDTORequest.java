@@ -1,25 +1,52 @@
 package com.senac.rpgsaude.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 public class RecompensaDTORequest {
-    @NotNull
-    private double preco;
-    @NotBlank
-    private String nome;
 
-    // Getters e Setters
-    public double getPreco() {
-        return preco;
-    }
-    public void setPreco(double preco) {
-        this.preco = preco;
-    }
+    private String nome;
+    private String descricao;
+    private String item;
+    private Double valor;
+    private Integer desafioId; // Obrigatório para vincular ao Desafio
+
+    // --- Getters e Setters ---
+
     public String getNome() {
         return nome;
     }
+
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public String getItem() {
+        return item;
+    }
+
+    public void setItem(String item) {
+        this.item = item;
+    }
+
+    public Double getValor() {
+        return valor;
+    }
+
+    public void setValor(Double valor) {
+        this.valor = valor;
+    }
+
+    public Integer getDesafioId() {
+        return desafioId;
+    }
+
+    public void setDesafioId(Integer desafioId) {
+        this.desafioId = desafioId;
     }
 }

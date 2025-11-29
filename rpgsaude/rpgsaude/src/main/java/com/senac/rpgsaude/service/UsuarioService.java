@@ -73,12 +73,26 @@ public class UsuarioService {
         return modelMapper.map(savedUsuario, UsuarioDTOResponse.class);
     }
 
-    public RecoveryJwtTokenDto authenticateUser(LoginUsuarioDto loginUserDto) {
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password());
+    // Em UsuarioService.java
 
-        Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-        UsuarioDetailsImpl userDetails = (UsuarioDetailsImpl) authentication.getPrincipal();
+    public RecoveryJwtTokenDto authenticateUser(LoginUsuarioDto loginUserDto) {
+        System.out.println(">>> SERVICE: Buscando usuário no banco...");
+
+        Usuario usuario = usuarioRepository.findByEmail(loginUserDto.email())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado no banco"));
+
+        System.out.println(">>> SERVICE: Usuário encontrado! ID: " + usuario.getId());
+        System.out.println(">>> SERVICE: Senha no Banco: " + usuario.getSenha());
+        System.out.println(">>> SERVICE: Senha Recebida: " + loginUserDto.password());
+
+        // Comparação de Strings (Texto Puro)
+        if (!loginUserDto.password().equals(usuario.getSenha())) {
+            System.out.println(">>> SERVICE: As senhas NÃO batem!");
+            throw new RuntimeException("Senha incorreta");
+        }
+
+        System.out.println(">>> SERVICE: Senhas batem! Gerando token...");
+        UsuarioDetailsImpl userDetails = new UsuarioDetailsImpl(usuario);
 
         return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
     }

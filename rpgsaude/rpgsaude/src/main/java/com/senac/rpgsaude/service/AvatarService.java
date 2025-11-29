@@ -101,4 +101,25 @@ public class AvatarService {
         }
         avatarRepository.deleteById(id);
     }
+
+    @Transactional
+    public void adicionarMoedas(Long avatarId, Integer quantidade) {
+        Avatar avatar = avatarRepository.findById(avatarId)
+                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + avatarId + " não encontrado."));
+
+        int novaQuantidade = (avatar.getMoedas() != null ? avatar.getMoedas() : 0) + quantidade;
+        avatar.setMoedas(novaQuantidade);
+
+        avatarRepository.save(avatar);
+    }
+    // ... dentro de AvatarService ...
+
+    @Transactional
+    public void atualizarAtributos(Long avatarId, String novosAtributos) {
+        Avatar avatar = avatarRepository.findById(avatarId)
+                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + avatarId + " não encontrado."));
+
+        avatar.setAtributos(novosAtributos);
+        avatarRepository.save(avatar);
+    }
 }

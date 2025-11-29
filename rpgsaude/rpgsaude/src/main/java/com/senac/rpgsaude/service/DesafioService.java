@@ -62,10 +62,15 @@ public class DesafioService {
     }
 
     private void updateDesafioFromDto(Desafio desafio, DesafioDTORequest dto) {
+        desafio.setNome(dto.getNome());
+        desafio.setDescricao(dto.getDescricao());
+        desafio.setTipo(dto.getTipo());
+        desafio.setChefeId(dto.getChefeId());
+
         Recompensa recompensa = recompensaRepository.findById(dto.getRecompensaId())
                 .orElseThrow(() -> new EntityNotFoundException("Prêmio com ID " + dto.getRecompensaId() + " não encontrado."));
 
-        // CORREÇÃO #2: O setter agora espera uma List<Recompensa> (OneToMany)
+        recompensa.setDesafio(desafio);
         desafio.setRecompensas(List.of(recompensa));
     }
 }

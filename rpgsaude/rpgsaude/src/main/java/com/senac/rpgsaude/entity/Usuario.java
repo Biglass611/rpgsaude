@@ -11,8 +11,6 @@ public class Usuario {
     @Column(name = "usuario_id")
     private Integer id;
 
-    // REMOVIDO: nome e telefone (pois não existem no banco)
-
     @Column(name = "usuario_email", unique = true)
     private String email;
 
@@ -22,11 +20,14 @@ public class Usuario {
     @Column(name = "usuario_status")
     private Integer status;
 
+    // --- CORREÇÃO AQUI ---
+    // Ajustado para bater com a tabela 'usuario_role' e a coluna 'usuario_id' do seu banco
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
-    @JoinTable(name="users_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
+    @JoinTable(name="usuario_role",
+            joinColumns = @JoinColumn(name = "usuario_id"),
             inverseJoinColumns = @JoinColumn(name="role_id"))
     private List<Role> roles;
+    // ---------------------
 
     // --- Getters e Setters ---
 

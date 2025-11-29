@@ -5,33 +5,38 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "dungeon")
 public class Dungeon {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "dungeon_id")
-    private int id;
+    private Integer id;
 
     @Column(name = "dungeon_nome")
     private String nome;
 
-    @Column(name = "dungeon_status")
-    private int status;
-
     @Column(name = "dungeon_dificuldade")
-    private int dificuldade;
+    private Integer dificuldade;
 
-    @ManyToOne
-    @JoinColumn(name = "avatar_id")
-    private Avatar avatar;
+    @Column(name = "dungeon_status")
+    private Integer status;
 
+    // Mapeamento para Usuario (conforme seu banco: usuario_id)
     @ManyToOne
-    @JoinColumn(name = "desafio_id")
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
+
+    // Mapeamento para Desafio (conforme seu banco: desafio_id)
+    @ManyToOne
+    @JoinColumn(name = "desafio_id", nullable = false)
     private Desafio desafio;
 
-    public int getId() {
+    // --- Getters e Setters ---
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -43,28 +48,28 @@ public class Dungeon {
         this.nome = nome;
     }
 
-    public int getDificuldade() {
+    public Integer getDificuldade() {
         return dificuldade;
     }
 
-    public void setDificuldade(int dificuldade) {
+    public void setDificuldade(Integer dificuldade) {
         this.dificuldade = dificuldade;
     }
 
-    public int getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 
-    public Avatar getAvatar() {
-        return avatar;
+    public Usuario getUsuario() {
+        return usuario;
     }
 
-    public void setAvatar(Avatar avatar) {
-        this.avatar = avatar;
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 
     public Desafio getDesafio() {

@@ -2,10 +2,12 @@ package com.senac.rpgsaude.service;
 
 import com.senac.rpgsaude.dto.request.DungeonDTORequest;
 import com.senac.rpgsaude.dto.response.DungeonDTOResponse;
+import com.senac.rpgsaude.entity.Desafio;
 import com.senac.rpgsaude.entity.Dungeon;
-import com.senac.rpgsaude.entity.Avatar;
+import com.senac.rpgsaude.entity.Usuario;
+import com.senac.rpgsaude.repository.DesafioRepository;
 import com.senac.rpgsaude.repository.DungeonRepository;
-import com.senac.rpgsaude.repository.AvatarRepository;
+import com.senac.rpgsaude.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +19,16 @@ import java.util.stream.Collectors;
 @Service
 public class DungeonService {
     private final DungeonRepository dungeonRepository;
-    private final AvatarRepository avatarRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final DesafioRepository desafioRepository;
 
     @Autowired
-    public DungeonService(DungeonRepository dungeonRepository, AvatarRepository avatarRepository) {
+    public DungeonService(DungeonRepository dungeonRepository,
+                          UsuarioRepository usuarioRepository,
+                          DesafioRepository desafioRepository) {
         this.dungeonRepository = dungeonRepository;
-        this.avatarRepository = avatarRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.desafioRepository = desafioRepository;
     }
 
     public List<DungeonDTOResponse> listarDungeon() {
@@ -38,20 +44,20 @@ public class DungeonService {
     }
 
     @Transactional
-    public DungeonDTOResponse criarDungeon(DungeonDTORequest dungeonDTORequest) {
+    public DungeonDTOResponse criarDungeon(DungeonDTORequest dto) {
         Dungeon dungeon = new Dungeon();
-        updateDungeonFromDto(dungeon, dungeonDTORequest);
+        updateDungeonFromDto(dungeon, dto);
 
         Dungeon savedDungeon = dungeonRepository.save(dungeon);
         return toResponseDTO(savedDungeon);
     }
 
     @Transactional
-    public DungeonDTOResponse atualizarDungeon(Integer id, DungeonDTORequest dungeonDTORequest) {
+    public DungeonDTOResponse atualizarDungeon(Integer id, DungeonDTORequest dto) {
         Dungeon dungeon = dungeonRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Dungeon com ID " + id + " não encontrada."));
 
-        updateDungeonFromDto(dungeon, dungeonDTORequest);
+        updateDungeonFromDto(dungeon, dto);
 
         Dungeon updatedDungeon = dungeonRepository.save(dungeon);
         return toResponseDTO(updatedDungeon);
@@ -59,31 +65,43 @@ public class DungeonService {
 
     @Transactional
     public void deletarDungeon(Integer id) {
+        if (!dungeonRepository.existsById(id)) {
+            throw new EntityNotFoundException("Dungeon com ID " + id + " não encontrada.");
+        }
         dungeonRepository.deleteById(id);
     }
 
-    // Métodos utilitários para conversão
+    // Converte Entidade -> DTO
     private DungeonDTOResponse toResponseDTO(Dungeon dungeon) {
         DungeonDTOResponse dto = new DungeonDTOResponse();
         dto.setId(dungeon.getId());
+        dto.setNome(dungeon.getNome());
         dto.setDificuldade(dungeon.getDificuldade());
         dto.setStatus(dungeon.getStatus());
-        if (dungeon.getAvatar() != null) {
-            dto.setNomeAvatar(dungeon.getAvatar().getUsuario().getEmail());
+
+        if (dungeon.getUsuario() != null) {
+            dto.setNomeUsuario(dungeon.getUsuario().getEmail());
+        }
+        if (dungeon.getDesafio() != null) {
+            dto.setNomeDesafio(dungeon.getDesafio().getNome());
         }
         return dto;
     }
 
+    // Preenche Entidade com dados do DTO
     private void updateDungeonFromDto(Dungeon dungeon, DungeonDTORequest dto) {
-
+        dungeon.setNome(dto.getNome());
         dungeon.setDificuldade(dto.getDificuldade());
         dungeon.setStatus(dto.getStatus());
 
-        // CORREÇÃO: Convertemos o Integer do DTO para Long, pois o AvatarRepository espera Long.
-        Long avatarId = Long.valueOf(dto.getAvatarId());
+        // 1. Vincular Usuario
+        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
+                .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + dto.getUsuarioId() + " não encontrado."));
+        dungeon.setUsuario(usuario);
 
-        Avatar avatar = avatarRepository.findById(avatarId)
-                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + avatarId + " não encontrado."));
-        dungeon.setAvatar(avatar);
+        // 2. Vincular Desafio
+        Desafio desafio = desafioRepository.findById(dto.getDesafioId())
+                .orElseThrow(() -> new EntityNotFoundException("Desafio com ID " + dto.getDesafioId() + " não encontrado."));
+        dungeon.setDesafio(desafio);
     }
 }

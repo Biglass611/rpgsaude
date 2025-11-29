@@ -1,12 +1,14 @@
 package com.senac.rpgsaude.dto.response;
 
-
 public class AvatarDTOResponse {
+
     private Long id;
-    private Double vida;
-    private Double ouro;
-    private Double xp;
+    private String nome;
+    private Integer nivel;
+    private Integer moedas;
+    private String atributos;
     private String nomeUsuario;
+
 
     public Long getId() {
         return id;
@@ -16,28 +18,36 @@ public class AvatarDTOResponse {
         this.id = id;
     }
 
-    public Double getVida() {
-        return vida;
+    public String getNome() {
+        return nome;
     }
 
-    public void setVida(Double vida) {
-        this.vida = vida;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
-    public Double getOuro() {
-        return ouro;
+    public Integer getNivel() {
+        return nivel;
     }
 
-    public void setOuro(Double ouro) {
-        this.ouro = ouro;
+    public void setNivel(Integer nivel) {
+        this.nivel = nivel;
     }
 
-    public Double getXp() {
-        return xp;
+    public Integer getMoedas() {
+        return moedas;
     }
 
-    public void setXp(Double xp) {
-        this.xp = xp;
+    public void setMoedas(Integer moedas) {
+        this.moedas = moedas;
+    }
+
+    public String getAtributos() {
+        return atributos;
+    }
+
+    public void setAtributos(String atributos) {
+        this.atributos = atributos;
     }
 
     public String getNomeUsuario() {
@@ -47,5 +57,4 @@ public class AvatarDTOResponse {
     public void setNomeUsuario(String nomeUsuario) {
         this.nomeUsuario = nomeUsuario;
     }
-
 }

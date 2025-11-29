@@ -1,37 +1,60 @@
 package com.senac.rpgsaude.dto.response;
 
 public class DungeonDTOResponse {
-    private int id;
-    private int dificuldade;
-    private int status;
-    private String nomeAvatar;
+    private Integer id;
+    private String nome;
+    private Integer dificuldade;
+    private Integer status;
+    private String nomeUsuario; // Para exibir de quem é a dungeon
+    private String nomeDesafio; // Para exibir qual é o desafio
 
+    // --- Getters e Setters ---
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getDificuldade() {
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public Integer getDificuldade() {
         return dificuldade;
     }
-    public void setDificuldade(int dificuldade) {
+
+    public void setDificuldade(Integer dificuldade) {
         this.dificuldade = dificuldade;
     }
-    
-    public int getStatus() {
+
+    public Integer getStatus() {
         return status;
     }
-    public void setStatus(int status) {
+
+    public void setStatus(Integer status) {
         this.status = status;
     }
-    public String getNomeAvatar() {
-        return nomeAvatar;
+
+    public String getNomeUsuario() {
+        return nomeUsuario;
     }
-    public void setNomeAvatar(String nomeAvatar) {
-        this.nomeAvatar = nomeAvatar;
+
+    public void setNomeUsuario(String nomeUsuario) {
+        this.nomeUsuario = nomeUsuario;
+    }
+
+    public String getNomeDesafio() {
+        return nomeDesafio;
+    }
+
+    public void setNomeDesafio(String nomeDesafio) {
+        this.nomeDesafio = nomeDesafio;
     }
 }

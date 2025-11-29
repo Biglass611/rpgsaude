@@ -5,47 +5,36 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "recompensa")
 public class Recompensa {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "recompensa_id") // ID da tabela recompensa
-    private int id; // Usar id para simplificar
-
-    @Column(name = "recompensa_preco")
-    private double preco;
+    @Column(name = "recompensa_id")
+    private Integer id;
 
     @Column(name = "recompensa_nome")
     private String nome;
 
-    @Column(name="recompensa_valor")
+    @Column(name = "recompensa_descricao")
+    private String descricao;
+
+    @Column(name = "recompensa_item")
+    private String item;
+
+    @Column(name = "recompensa_valor")
     private Double valor;
 
-    // Relacionamento com Desafio (lado proprietário da FK 'desafio_id')
     @ManyToOne
-    @JoinColumn(name = "desafio_id")
+    @JoinColumn(name = "desafio_desafio_id", referencedColumnName = "desafio_id", nullable = false)
     private Desafio desafio;
 
-    public int getId() {
+    // --- Getters e Setters ---
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Double getValor() {
-        return valor;
-    }
-
-    public void setValor(Double valor) {
-        this.valor = valor;
-    }
-
-    public double getPreco() {
-        return preco;
-    }
-
-    public void setPreco(double preco) {
-        this.preco = preco;
     }
 
     public String getNome() {
@@ -54,6 +43,30 @@ public class Recompensa {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public String getItem() {
+        return item;
+    }
+
+    public void setItem(String item) {
+        this.item = item;
+    }
+
+    public Double getValor() {
+        return valor;
+    }
+
+    public void setValor(Double valor) {
+        this.valor = valor;
     }
 
     public Desafio getDesafio() {

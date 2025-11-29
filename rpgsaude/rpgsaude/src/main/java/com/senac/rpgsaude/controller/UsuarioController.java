@@ -27,11 +27,24 @@ public class UsuarioController {
 
     @PostMapping("/login")
     @Operation(summary = "Login do usuário", description = "Autentica um usuário e retorna um token JWT")
-    public ResponseEntity<RecoveryJwtTokenDto> authenticateUser(@RequestBody LoginUsuarioDto loginUserDto) {
-        RecoveryJwtTokenDto token = usuarioService.authenticateUser(loginUserDto);
-        return new ResponseEntity<>(token, HttpStatus.OK);
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginUsuarioDto loginUserDto) {
+        System.out.println(">>> 1. TENTATIVA DE LOGIN RECEBIDA");
+        System.out.println(">>> Email recebido: " + loginUserDto.email());
+        System.out.println(">>> Senha recebida: " + loginUserDto.password());
+
+        try {
+            // Chamando o serviço
+            RecoveryJwtTokenDto token = usuarioService.authenticateUser(loginUserDto);
+
+            System.out.println(">>> 2. LOGIN SUCESSO! Token gerado.");
+            return new ResponseEntity<>(token, HttpStatus.OK);
+
+        } catch (Exception e) {
+            System.out.println(">>> 3. ERRO NO LOGIN!");
+            e.printStackTrace(); // Isso vai imprimir o erro exato no console
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
-    // ------------------------------
 
     @PostMapping("/criar") // Será acessado como /users/criar
     @Operation(summary = "Criar novo usuário", description = "Endpoint para criar um novo registro de usuário")

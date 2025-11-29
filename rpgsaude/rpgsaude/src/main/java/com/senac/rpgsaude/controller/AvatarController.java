@@ -60,4 +60,24 @@ public class AvatarController {
         avatarService.deletarAvatar(id);
         return ResponseEntity.noContent().build();
     }
+    @PostMapping("/{id}/adicionar-moedas")
+    @Operation(summary = "Adicionar moedas", description = "Adiciona uma quantidade de moedas ao avatar")
+    public ResponseEntity<Void> adicionarMoedas(
+            @PathVariable("id") Long id,
+            @RequestBody Integer quantidade) {
+
+        avatarService.adicionarMoedas(id, quantidade);
+        return ResponseEntity.ok().build();
+    }
+    // ... dentro de AvatarController ...
+
+    @PutMapping("/{id}/atualizar-atributos")
+    @Operation(summary = "Atualizar atributos", description = "Define os atributos do avatar (Ex: 'Força: 10, Agilidade: 5')")
+    public ResponseEntity<Void> atualizarAtributos(
+            @PathVariable("id") Long id,
+            @RequestBody String atributos) {
+
+        avatarService.atualizarAtributos(id, atributos);
+        return ResponseEntity.ok().build();
+    }
 }

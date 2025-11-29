@@ -24,35 +24,34 @@ public class DungeonController {
     }
 
     @GetMapping("/listar")
-    @Operation(summary = "Listar dungeons", description = "Endpoint para listar todas as dungeons")
-    public ResponseEntity<List<DungeonDTOResponse>> listarMissoes() {
+    @Operation(summary = "Listar dungeons", description = "Lista todas as dungeons")
+    public ResponseEntity<List<DungeonDTOResponse>> listarDungeons() {
         return ResponseEntity.ok(dungeonService.listarDungeon());
     }
 
     @GetMapping("/listarPorId/{id}")
-    @Operation(summary = "Listar dungeon por ID", description = "Endpoint para buscar uma dungeon pelo seu ID")
+    @Operation(summary = "Buscar dungeon por ID", description = "Retorna uma dungeon específica")
     public ResponseEntity<DungeonDTOResponse> listarPorId(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(dungeonService.listarPorId(id));
     }
 
     @PostMapping("/criar")
-    @Operation(summary = "Criar nova dungeon", description = "Endpoint para criar um novo registro de dungeon")
-    public ResponseEntity<DungeonDTOResponse> criarDungeon(@Valid @RequestBody DungeonDTORequest dungeonDTORequest) {
-        DungeonDTOResponse novaDungeon = dungeonService.criarDungeon(dungeonDTORequest);
+    @Operation(summary = "Criar nova dungeon", description = "Cria uma nova dungeon vinculada a um usuário e um desafio")
+    public ResponseEntity<DungeonDTOResponse> criarDungeon(@Valid @RequestBody DungeonDTORequest dto) {
+        DungeonDTOResponse novaDungeon = dungeonService.criarDungeon(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(novaDungeon);
     }
 
     @PutMapping("/atualizar/{id}")
-    @Operation(summary = "Atualizar dungeon", description = "Endpoint para atualizar todos os dados de uma dungeon")
+    @Operation(summary = "Atualizar dungeon", description = "Atualiza dados de uma dungeon")
     public ResponseEntity<DungeonDTOResponse> atualizarDungeon(
             @PathVariable("id") Integer id,
-            @Valid @RequestBody DungeonDTORequest dungeonDTORequest) {
-        DungeonDTOResponse dungeonAtualizada = dungeonService.atualizarDungeon(id, dungeonDTORequest);
-        return ResponseEntity.ok(dungeonAtualizada);
+            @Valid @RequestBody DungeonDTORequest dto) {
+        return ResponseEntity.ok(dungeonService.atualizarDungeon(id, dto));
     }
 
     @DeleteMapping("/deletar/{id}")
-    @Operation(summary = "Deletar dungeon", description = "Endpoint para deletar uma dungeon pelo seu ID")
+    @Operation(summary = "Deletar dungeon", description = "Remove uma dungeon do sistema")
     public ResponseEntity<Void> deletarDungeon(@PathVariable("id") Integer id) {
         dungeonService.deletarDungeon(id);
         return ResponseEntity.noContent().build();

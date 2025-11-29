@@ -1,43 +1,64 @@
 package com.senac.rpgsaude.dto.request;
 
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate; // Mantido, mas não usado nos campos internos. Pode ser removido.
 
 public class DungeonDTORequest {
 
-    @NotNull(message = "O ID do Avatar é obrigatório.")
-    private Integer avatarId;
+    @NotBlank(message = "O nome da dungeon é obrigatório")
+    private String nome;
 
-    @Min(value = 1, message = "A dificuldade deve ser maior ou igual a 1.")
-    private int dificuldade;
+    @NotNull(message = "A dificuldade é obrigatória")
+    private Integer dificuldade;
 
+    @NotNull(message = "O status é obrigatório")
+    private Integer status;
 
-    private int status;
+    @NotNull(message = "O ID do usuário é obrigatório")
+    private Integer usuarioId;
 
+    @NotNull(message = "O ID do desafio é obrigatório")
+    private Integer desafioId;
 
+    // --- Getters e Setters ---
 
-    public Integer getAvatarId() {
-        return avatarId;
+    public String getNome() {
+        return nome;
     }
 
-    public void setAvatarId(Integer avatarId) {
-        this.avatarId = avatarId;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
-    public int getDificuldade() {
+    public Integer getDificuldade() {
         return dificuldade;
     }
 
-    public void setDificuldade(int dificuldade) {
+    public void setDificuldade(Integer dificuldade) {
         this.dificuldade = dificuldade;
     }
 
-    public int getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Integer getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(Integer usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
+    public Integer getDesafioId() {
+        return desafioId;
+    }
+
+    public void setDesafioId(Integer desafioId) {
+        this.desafioId = desafioId;
     }
 }
