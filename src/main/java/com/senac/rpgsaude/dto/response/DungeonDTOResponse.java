@@ -7,6 +7,7 @@ public class DungeonDTOResponse {
     private Integer status;
     private String nomeUsuario; // Para exibir de quem é a dungeon
     private String nomeDesafio; // Para exibir qual é o desafio
+    private Integer desafioId;
 
     // --- Getters e Setters ---
 
@@ -57,4 +58,8 @@ public class DungeonDTOResponse {
     public void setNomeDesafio(String nomeDesafio) {
         this.nomeDesafio = nomeDesafio;
     }
+
+    public Integer getDesafioId() { return desafioId; }
+
+    public void setDesafioId(Integer desafioId) { this.desafioId = desafioId; }
 }

@@ -2,6 +2,7 @@ package com.senac.rpgsaude.controller;
 
 import com.senac.rpgsaude.dto.request.DungeonDTORequest;
 import com.senac.rpgsaude.dto.response.DungeonDTOResponse;
+import com.senac.rpgsaude.dto.response.RankingDTOResponse;
 import com.senac.rpgsaude.service.DungeonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,5 +56,12 @@ public class DungeonController {
     public ResponseEntity<Void> deletarDungeon(@PathVariable("id") Integer id) {
         dungeonService.deletarDungeon(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // --- ENDPOINT DE RANKING ---
+    @GetMapping("/ranking/{desafioId}")
+    @Operation(summary = "Ver Ranking", description = "Mostra o ranking dos participantes deste desafio/grupo")
+    public ResponseEntity<List<RankingDTOResponse>> verRanking(@PathVariable("desafioId") Integer desafioId) {
+        return ResponseEntity.ok(dungeonService.gerarRankingPorDesafio(desafioId));
     }
 }

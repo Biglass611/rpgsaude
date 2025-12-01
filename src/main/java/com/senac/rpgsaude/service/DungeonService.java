@@ -2,6 +2,7 @@ package com.senac.rpgsaude.service;
 
 import com.senac.rpgsaude.dto.request.DungeonDTORequest;
 import com.senac.rpgsaude.dto.response.DungeonDTOResponse;
+import com.senac.rpgsaude.dto.response.RankingDTOResponse;
 import com.senac.rpgsaude.entity.Desafio;
 import com.senac.rpgsaude.entity.Dungeon;
 import com.senac.rpgsaude.entity.Usuario;
@@ -13,6 +14,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,24 @@ public class DungeonService {
         this.dungeonRepository = dungeonRepository;
         this.usuarioRepository = usuarioRepository;
         this.desafioRepository = desafioRepository;
+    }
+
+    public List<RankingDTOResponse> gerarRankingPorDesafio(Integer desafioId) {
+        List<Dungeon> dungeons = dungeonRepository.findByDesafioId(desafioId);
+        List<RankingDTOResponse> ranking = new ArrayList<>();
+
+        for (Dungeon d : dungeons) {
+            if (d.getUsuario() != null) {
+                // Placeholder seguro, pois removemos o getPersonagem() da Entidade Usuario
+                ranking.add(new RankingDTOResponse(
+                        d.getUsuario().getEmail(),
+                        1,
+                        0
+                ));
+            }
+        }
+        Collections.sort(ranking);
+        return ranking;
     }
 
     public List<DungeonDTOResponse> listarDungeon() {
@@ -71,7 +92,6 @@ public class DungeonService {
         dungeonRepository.deleteById(id);
     }
 
-    // Converte Entidade -> DTO
     private DungeonDTOResponse toResponseDTO(Dungeon dungeon) {
         DungeonDTOResponse dto = new DungeonDTOResponse();
         dto.setId(dungeon.getId());
@@ -84,24 +104,25 @@ public class DungeonService {
         }
         if (dungeon.getDesafio() != null) {
             dto.setNomeDesafio(dungeon.getDesafio().getNome());
+            dto.setDesafioId(dungeon.getDesafio().getId());
         }
         return dto;
     }
 
-    // Preenche Entidade com dados do DTO
     private void updateDungeonFromDto(Dungeon dungeon, DungeonDTORequest dto) {
         dungeon.setNome(dto.getNome());
         dungeon.setDificuldade(dto.getDificuldade());
         dungeon.setStatus(dto.getStatus());
 
-        // 1. Vincular Usuario
-        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
-                .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + dto.getUsuarioId() + " não encontrado."));
+        Integer usuarioId = dto.getUsuarioId();
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + usuarioId + " não encontrado."));
         dungeon.setUsuario(usuario);
 
-        // 2. Vincular Desafio
-        Desafio desafio = desafioRepository.findById(dto.getDesafioId())
-                .orElseThrow(() -> new EntityNotFoundException("Desafio com ID " + dto.getDesafioId() + " não encontrado."));
-        dungeon.setDesafio(desafio);
+        if (dto.getDesafioId() != null) {
+            Desafio desafio = desafioRepository.findById(dto.getDesafioId())
+                    .orElseThrow(() -> new EntityNotFoundException("Desafio com ID " + dto.getDesafioId() + " não encontrado."));
+            dungeon.setDesafio(desafio);
+        }
     }
 }

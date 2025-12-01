@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 public class DesafioService {
     private final DesafioRepository desafioRepository;
     private final RecompensaRepository recompensaRepository;
+
     @Autowired
     public DesafioService(DesafioRepository desafioRepository,  RecompensaRepository recompensaRepository) {
         this.desafioRepository = desafioRepository;
@@ -32,7 +33,7 @@ public class DesafioService {
 
     public DesafioDTOResponse listarPorId(Integer id) {
         Desafio desafio = desafioRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Tabela de Prêmio com ID " + id + " não encontrada."));
+                .orElseThrow(() -> new EntityNotFoundException("Desafio com ID " + id + " não encontrado."));
         return toResponseDTO(desafio);
     }
 
@@ -50,11 +51,16 @@ public class DesafioService {
         desafioRepository.deleteById(id);
     }
 
+    // --- CORREÇÃO AQUI ---
     private DesafioDTOResponse toResponseDTO(Desafio desafio) {
         DesafioDTOResponse dto = new DesafioDTOResponse();
         dto.setId(desafio.getId());
 
-        // CORREÇÃO #1: Acessar a lista de recompensas e pegar o nome da primeira (ou tratar vazia)
+        // Adicionamos os campos que estavam faltando:
+        dto.setNome(desafio.getNome());
+        dto.setDescricao(desafio.getDescricao());
+        dto.setTipo(desafio.getTipo());
+
         if (desafio.getRecompensas() != null && !desafio.getRecompensas().isEmpty()) {
             dto.setNomeRecompensa(desafio.getRecompensas().get(0).getNome());
         }

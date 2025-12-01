@@ -27,6 +27,21 @@ public class RecompensaService {
         this.modelMapper = modelMapper;
     }
 
+    @Transactional(readOnly = true)
+    public List<RecompensaDTOResponse> listarRecompensas() {
+        return recompensaRepository.findAll().stream()
+                .map(rec -> modelMapper.map(rec, RecompensaDTOResponse.class))
+                .collect(Collectors.toList());
+    }
+
+    // MÉTODO LISTAR POR ID (FALTANDO ANTES)
+    @Transactional(readOnly = true)
+    public RecompensaDTOResponse listarPorId(Integer id) {
+        Recompensa recompensa = recompensaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Recompensa não encontrada com ID: " + id));
+        return modelMapper.map(recompensa, RecompensaDTOResponse.class);
+    }
+
     @Transactional
     public RecompensaDTOResponse criarRecompensa(RecompensaDTORequest dto) {
         Recompensa recompensa = new Recompensa();
@@ -36,22 +51,7 @@ public class RecompensaService {
         return modelMapper.map(saved, RecompensaDTOResponse.class);
     }
 
-    @Transactional(readOnly = true)
-    public List<RecompensaDTOResponse> listarRecompensas() {
-        return recompensaRepository.findAll().stream()
-                .map(rec -> modelMapper.map(rec, RecompensaDTOResponse.class))
-                .collect(Collectors.toList());
-    }
-
-    // --- ESTE É O MÉTODO QUE ESTAVA FALTANDO ---
-    @Transactional(readOnly = true)
-    public RecompensaDTOResponse listarPorId(Integer id) {
-        Recompensa recompensa = recompensaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Recompensa não encontrada com ID: " + id));
-        return modelMapper.map(recompensa, RecompensaDTOResponse.class);
-    }
-    // -------------------------------------------
-
+    // MÉTODO ATUALIZAR (FALTANDO ANTES)
     @Transactional
     public RecompensaDTOResponse atualizarRecompensa(Integer id, RecompensaDTORequest dto) {
         Recompensa recompensa = recompensaRepository.findById(id)
@@ -63,6 +63,7 @@ public class RecompensaService {
         return modelMapper.map(updated, RecompensaDTOResponse.class);
     }
 
+    // MÉTODO DELETAR (FALTANDO ANTES)
     @Transactional
     public void deletarRecompensa(Integer id) {
         if (!recompensaRepository.existsById(id)) {
@@ -71,6 +72,7 @@ public class RecompensaService {
         recompensaRepository.deleteById(id);
     }
 
+    // MÉTODO AUXILIAR (Já existia, mas foi incluído para compilar)
     private void updateRecompensaFromDto(Recompensa recompensa, RecompensaDTORequest dto) {
         recompensa.setNome(dto.getNome());
         recompensa.setDescricao(dto.getDescricao());

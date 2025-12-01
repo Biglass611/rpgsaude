@@ -10,4 +10,6 @@ import java.util.List;
 public interface DungeonRepository extends JpaRepository<Dungeon, Integer> {
 
     List<Dungeon> findByUsuarioAndStatus(Usuario usuario, int status);
+
+    List<Dungeon> findByDesafioId(Integer desafioId);
 }
