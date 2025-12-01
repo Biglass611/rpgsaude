@@ -9,6 +9,10 @@ public class AvatarDTOResponse {
     private String atributos;
     private String nomeUsuario;
 
+    // --- NOVO CAMPO NECESSÁRIO ---
+    private Integer usuarioId;
+
+    // --- Getters e Setters ---
 
     public Long getId() {
         return id;
@@ -56,5 +60,14 @@ public class AvatarDTOResponse {
 
     public void setNomeUsuario(String nomeUsuario) {
         this.nomeUsuario = nomeUsuario;
+    }
+
+    // --- GETTER E SETTER DO NOVO CAMPO ---
+    public Integer getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(Integer usuarioId) {
+        this.usuarioId = usuarioId;
     }
 }
