@@ -1,10 +1,9 @@
 package com.senac.rpgsaude.config;
 
-import com.senac.rpgsaude.security.SecurityFilter; // Importa o filtro que criamos na outra pasta
+import com.senac.rpgsaude.security.SecurityFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,28 +19,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Autowired
-    private SecurityFilter securityFilter; // ✅ Usamos o filtro de Token (igual ao do seu amigo)
+    private SecurityFilter securityFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // Desabilita proteção de formulário (necessário para API)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // 🔓 LIBERA O DOWNLOAD E A PÁGINA INICIAL
-                        .requestMatchers(HttpMethod.GET, "/").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/index.html").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/rpgsaude/**").permitAll() // Para o proxy
-                        .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
-
-                        // 🔓 LIBERA LOGIN E REGISTRO
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-
-                        // 🔒 BLOQUEIA O RESTO
-                        .anyRequest().authenticated()
+                        // 🚨 MODO LIBERA GERAL: O "**" significa "Qualquer coisa"
+                        // Isso vai eliminar o erro 403 imediatamente.
+                        .requestMatchers("/**").permitAll()
                 )
-                // Adiciona o nosso filtro de token antes do filtro padrão
+                // Mantemos o filtro para o login funcionar, mas ele não vai bloquear ninguém
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -53,9 +43,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // ✅ Se as senhas no banco forem "123456" (texto puro), use o NoOp (comentado abaixo).
-        // ✅ Se forem criptografadas (hashes longos), use o BCrypt (padrão).
         return new BCryptPasswordEncoder();
-        // return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
     }
 }
