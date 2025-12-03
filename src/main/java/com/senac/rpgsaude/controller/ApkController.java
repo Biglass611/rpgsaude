@@ -14,18 +14,28 @@ import java.io.IOException;
 @Controller
 public class ApkController {
 
-    // ✅ Rota principal: Quando acessar "/rgpsaude", o Java entrega o index.html da pasta static
-    @GetMapping(value = {"/", "/rgpsaude"})
+    // ✅ Mapeamos TODAS as formas que alguém pode tentar entrar no seu site
+    @GetMapping(value = {
+            "/",                        // Raiz (opcional)
+            "/rpgsaude",                // O nome do projeto
+            "/rpgsaude/",               // O nome do projeto com barra
+            "/rpgsaude/index.html",     // O caminho completo que você pediu
+            "/rgpsaude",                // (Previne erro de digitação comum 'rgp')
+            "/rgpsaude/index.html"      // (Previne erro de digitação no html)
+    })
     public String home() {
-        // "forward" diz para o Spring: "Não renderize nada, só entregue o arquivo estático"
+        // Isso força o Java a mostrar o arquivo que está em src/main/resources/static/index.html
         return "forward:/index.html";
     }
 
-    // ✅ Rota de Download: Mantivemos a correção anterior
-    @GetMapping(value = {"/download/app", "/rgpsaude/download/app"})
+    // ✅ Rota de Download (também protegida com o prefixo)
+    @GetMapping(value = {
+            "/download/app",
+            "/rpgsaude/download/app",       // Caminho correto
+            "/rpgsaude/rpgsaude.apk"        // Caminho direto pro arquivo
+    })
     @ResponseBody
     public ResponseEntity<Resource> downloadApk() throws IOException {
-        // Busca o arquivo dentro de src/main/resources/static/rpgsaude.apk
         Resource resource = new ClassPathResource("static/rpgsaude.apk");
 
         if (!resource.exists()) {
