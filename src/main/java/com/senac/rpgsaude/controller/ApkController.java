@@ -1,32 +1,32 @@
 package com.senac.rpgsaude.controller;
 
+import org.springframework.core.io.ClassPathResource; // IMPORTANTE: Mudei o import
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller; // Use Controller em vez de RestController para páginas
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody; // Necessário para o download
 
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.IOException;
 
-@RestController
+@Controller // Mudei de @RestController para @Controller para o index.html funcionar
 public class ApkController {
 
-    // Serve a página inicial (index.html) na raiz e no contexto
-    @GetMapping(value = {"/", "/index.html"})
+    // Serve a página inicial
+    @GetMapping(value = {"/", "/index.html", "/rgpsaude"})
     public String home() {
-        return "index"; // Spring procura em src/main/resources/static/index.html
+        return "index"; // Vai procurar o index.html na pasta templates ou static
     }
 
-    // Aceita tanto /download/app quanto /rgpsaude/download/app (caso o contexto falhe)
+    // Serve o Download
     @GetMapping(value = {"/download/app", "/rgpsaude/download/app"})
-    public ResponseEntity<Resource> downloadApk() throws MalformedURLException {
-        // Caminho absoluto dentro do container Docker
-        Path path = Paths.get("/app/apk/rpgsaude.apk");
-        Resource resource = new UrlResource(path.toUri());
+    @ResponseBody // Indica que o retorno é o arquivo, não uma página
+    public ResponseEntity<Resource> downloadApk() throws IOException {
+
+        // CORREÇÃO: Busca o arquivo dentro da pasta 'static' do projeto
+        Resource resource = new ClassPathResource("static/rpgsaude.apk");
 
         if (!resource.exists()) {
             return ResponseEntity.notFound().build();
