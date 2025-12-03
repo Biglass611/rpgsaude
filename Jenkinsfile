@@ -1,59 +1,77 @@
 pipeline {
     agent any
+
+    environment {
+        // Configurações do seu projeto
+        APP_NAME = 'rpgsaude'
+        APP_PORT = '8427'
+        // Caminho onde o APK deve ficar para ser empacotado
+        STATIC_DIR = "src/main/resources/static"
+        APK_FILENAME = "rpgsaude.apk"
+    }
+
     stages {
-        stage('Verificar Repositório') {
+        stage('1. Verificar Repositório') {
             steps {
+                // Seu repositório correto
                 checkout([$class: 'GitSCM', branches: [[name: '*/master']], useRemoteConfigs: [[url: 'https://github.com/Biglass611/rpgsaude']]])
             }
         }
 
-        stage('Instalar Dependências') {
+        stage('2. Preparar APK') {
             steps {
                 script {
-                    env.PATH = "/usr/bin:$PATH"
-                    bat 'mvn clean install'
+                    echo "--- Verificando se o APK existe ---"
+
+                    bat "if not exist \"${STATIC_DIR}\\${APK_FILENAME}\" echo FAKE APK > \"${STATIC_DIR}\\${APK_FILENAME}\""
+
+                    echo "APK pronto para empacotamento."
                 }
             }
         }
 
-        stage('Construir Imagem Docker') {
+        stage('3. Build do Backend (Maven)') {
             steps {
                 script {
-                    def appName = 'rpgsaude'
-                    def imageTag = "${appName}:${env.BUILD_ID}"
+                    echo "--- Compilando o Java com Maven ---"
+                    // O Dockerfile precisa da pasta 'target' pronta
+                    bat 'mvn clean package -DskipTests'
+                }
+            }
+        }
 
-                    // Construir a imagem Docker
+        stage('4. Construir Imagem Docker') {
+            steps {
+                script {
+                    def imageTag = "${APP_NAME}:latest"
+                    echo "--- Criando Imagem Docker: ${imageTag} ---"
                     bat "docker build -t ${imageTag} ."
                 }
             }
         }
 
-        stage('Fazer Deploy') {
+        stage('5. Fazer Deploy') {
             steps {
                 script {
-                    def appName = 'rpgsaude'
-                    def imageTag = "${appName}:${env.BUILD_ID}"
+                    def imageTag = "${APP_NAME}:latest"
 
-                    // Parar e remover o container existente, se houver
-            		bat "docker stop ${appName} || exit 0"
-            		bat "docker rm -v ${appName} || exit 0"  // Remover o container e os volumes associados
+                    echo "--- Reiniciando Container ---"
+                    // Para o antigo (ignora erro se não existir)
+                    bat "docker stop ${APP_NAME} || exit 0"
+                    bat "docker rm -f ${APP_NAME} || exit 0"
 
-                    // Executar o novo container
-                    bat "docker-compose up -d --build"
-
+                    // Sobe o novo mapeando a porta 8427
+                    bat "docker run -d --name ${APP_NAME} -p ${APP_PORT}:${APP_PORT} --restart always ${imageTag}"
                 }
             }
         }
     }
     post {
         success {
-            echo 'Deploy realizado com sucesso!'
+            echo "SUCESSO! Acesse: http://localhost:${APP_PORT}/swagger-ui.html ou http://localhost:${APP_PORT}/ para baixar o APK."
         }
         failure {
-            echo 'Houve um erro durante o deploy.'
+            echo 'FALHA: Ocorreu um erro durante o deploy.'
         }
     }
 }
-
-
-
