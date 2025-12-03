@@ -9,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "usuario")
-public class Usuario implements UserDetails { // ✅ Adicionado implements UserDetails
+public class Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +25,6 @@ public class Usuario implements UserDetails { // ✅ Adicionado implements UserD
     @Column(name = "usuario_status")
     private Integer status;
 
-    // Relacionamento com Roles (Perfis)
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(name="usuario_role",
             joinColumns = @JoinColumn(name = "usuario_id"),
@@ -33,24 +32,46 @@ public class Usuario implements UserDetails { // ✅ Adicionado implements UserD
     private List<Role> roles;
 
     // =================================================================================
-    // 👇 MÉTODOS OBRIGATÓRIOS DO SPRING SECURITY (UserDetails)
+    // 👇 CONSTRUTORES (NECESSÁRIOS PARA O SERVICE FUNCIONAR)
+    // =================================================================================
+
+    // Construtor vazio (Obrigatório para o JPA/Hibernate)
+    public Usuario() {
+    }
+
+    // Construtor para criar usuário novo no Registro
+    public Usuario(String email, String senha, List<Role> roles) {
+        this.email = email;
+        this.senha = senha;
+        this.roles = roles;
+        this.status = 1; // Define ativo por padrão ao criar
+    }
+
+    // Construtor simples (caso seu service use apenas login e senha inicial)
+    public Usuario(String email, String senha) {
+        this.email = email;
+        this.senha = senha;
+        this.status = 1;
+    }
+
+    // =================================================================================
+    // 👇 MÉTODOS DO SPRING SECURITY
     // =================================================================================
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Retorna a lista de perfis (roles) do banco de dados.
-        // O Spring precisa que a sua classe "Role" implemente GrantedAuthority (veja nota abaixo)
-        return (Collection<? extends GrantedAuthority>) this.roles;
+        // Como sua classe Role já implementa GrantedAuthority, pode retornar direto!
+        return this.roles;
     }
 
     @Override
     public String getPassword() {
-        return this.senha; // ✅ Retorna sua coluna 'usuario_senha'
+        return this.senha;
     }
 
     @Override
     public String getUsername() {
-        return this.email; // ✅ Retorna sua coluna 'usuario_email' como login
+        return this.email;
     }
 
     @Override
@@ -70,13 +91,11 @@ public class Usuario implements UserDetails { // ✅ Adicionado implements UserD
 
     @Override
     public boolean isEnabled() {
-        // Se você quiser bloquear usuários com status 0, mude para:
-        // return this.status != null && this.status == 1;
-        return true; // Por enquanto, deixei todos ativos
+        return true;
     }
 
     // =================================================================================
-    // 👇 SEUS GETTERS E SETTERS ORIGINAIS (Mantidos intactos)
+    // 👇 SEUS GETTERS E SETTERS ORIGINAIS
     // =================================================================================
 
     public List<Role> getRoles() {
