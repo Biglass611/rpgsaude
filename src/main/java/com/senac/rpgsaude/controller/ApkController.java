@@ -15,10 +15,16 @@ import java.nio.file.Paths;
 @RestController
 public class ApkController {
 
-    // Esta rota serve o arquivo APK
-    @GetMapping("/download/app")
+    // Serve a página inicial (index.html) na raiz e no contexto
+    @GetMapping(value = {"/", "/index.html"})
+    public String home() {
+        return "index"; // Spring procura em src/main/resources/static/index.html
+    }
+
+    // Aceita tanto /download/app quanto /rgpsaude/download/app (caso o contexto falhe)
+    @GetMapping(value = {"/download/app", "/rgpsaude/download/app"})
     public ResponseEntity<Resource> downloadApk() throws MalformedURLException {
-        // O Dockerfile copia o APK para este caminho exato:
+        // Caminho absoluto dentro do container Docker
         Path path = Paths.get("/app/apk/rpgsaude.apk");
         Resource resource = new UrlResource(path.toUri());
 
