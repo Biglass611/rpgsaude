@@ -1,10 +1,11 @@
 package com.senac.rpgsaude.entity;
 
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority; // ⚠️ Import obrigatório
 
 @Entity
 @Table(name = "role")
-public class Role {
+public class Role implements GrantedAuthority { // ✅ Agora é uma autoridade oficial
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,7 +16,20 @@ public class Role {
     @Column(name = "role_name")
     private RoleName name;
 
-    // --- Getters e Setters ---
+    // =================================================================
+    // 👇 MÉTODO OBRIGATÓRIO (GrantedAuthority)
+    // =================================================================
+
+    @Override
+    public String getAuthority() {
+        // Converte o Enum para String.
+        // Se o seu Enum for ROLE_ADMIN, isso retorna "ROLE_ADMIN".
+        return name.toString();
+    }
+
+    // =================================================================
+    // Getters e Setters
+    // =================================================================
 
     public Long getId() {
         return id;

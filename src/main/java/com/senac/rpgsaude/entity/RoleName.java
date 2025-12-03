@@ -1,7 +1,6 @@
 package com.senac.rpgsaude.entity;
 
 public enum RoleName {
-    APAGADO,
-    ATIVO,
-    INATIVO,
+    ROLE_USUARIO,
+    ROLE_ADMIN,
 }
