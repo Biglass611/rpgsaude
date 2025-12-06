@@ -40,16 +40,16 @@ pipeline {
         }
 
         // --- REQUISITO 2: Validar APK ---
-        stage('Integrar APK no Backend') {
-            steps {
-                script {
-                    echo "--- Validando recursos estáticos ---"
-                    // Comando Windows para listar
-                    bat "dir ${STATIC_DIR}"
-                    echo "APK confirmado."
-                }
-            }
-        }
+       stage('Integrar APK no Backend') {
+                   steps {
+                       script {
+                           echo "--- Validando recursos estáticos ---"
+                           // Use barras invertidas duplas para Windows
+                           bat "dir src\\main\\resources\\static"
+                           echo "APK confirmado."
+                       }
+                   }
+               }
 
         stage('Instalar Dependências (Maven)') {
             steps {
