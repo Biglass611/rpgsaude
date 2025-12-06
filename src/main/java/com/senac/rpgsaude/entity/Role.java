@@ -16,10 +16,6 @@ public class Role implements GrantedAuthority { // ✅ Agora é uma autoridade o
     @Column(name = "role_name")
     private RoleName name;
 
-    // =================================================================
-    // 👇 MÉTODO OBRIGATÓRIO (GrantedAuthority)
-    // =================================================================
-
     @Override
     public String getAuthority() {
         // Converte o Enum para String.

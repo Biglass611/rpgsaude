@@ -1,18 +1,21 @@
 package com.senac.rpgsaude.service;
 
-import com.senac.rpgsaude.dto.LoginUsuarioDto;
-import com.senac.rpgsaude.dto.RecoveryJwtTokenDto;
+import com.senac.rpgsaude.dto.request.LoginDTORequest;
+import com.senac.rpgsaude.dto.response.LoginDTOResponse;
 import com.senac.rpgsaude.dto.request.UsuarioDTORequest;
 import com.senac.rpgsaude.dto.response.UsuarioDTOResponse;
 import com.senac.rpgsaude.entity.*;
 import com.senac.rpgsaude.repository.*;
+import com.senac.rpgsaude.security.TokenService; // Importa o novo TokenService
+// Removemos o import do JwtTokenService antigo se ele existir
+
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,86 +24,65 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class UsuarioService {
-    private final UsuarioRepository usuarioRepository;
-    private final ModelMapper modelMapper;
-    private final AvatarRepository avatarRepository; // Nome da variável corrigido para minúsculo
-    private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenService jwtTokenService;
+public class UsuarioService implements UserDetailsService {
 
-    @Autowired
-    public UsuarioService(UsuarioRepository usuarioRepository, ModelMapper modelMapper,
-                          AvatarRepository avatarRepository,
-                          PasswordEncoder passwordEncoder,
-                          AuthenticationManager authenticationManager,
-                          JwtTokenService jwtTokenService) {
-        this.usuarioRepository = usuarioRepository;
-        this.modelMapper = modelMapper;
-        this.avatarRepository = avatarRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-        this.jwtTokenService = jwtTokenService;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private ModelMapper modelMapper;
+    @Autowired private AvatarRepository avatarRepository;
+
+    @Autowired private TokenService tokenService; // Usamos o TokenService aqui
+
+    @Autowired private PasswordEncoder passwordEncoder;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return usuarioRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com email: " + username));
     }
 
     @Transactional
     public UsuarioDTOResponse criarUsuario(UsuarioDTORequest usuarioDTORequest) {
         if (usuarioRepository.findByEmail(usuarioDTORequest.getEmail()).isPresent()) {
-            throw new EntityExistsException("Este e-mail já está cadastrado.");
+            throw new EntityExistsException("E-mail já cadastrado.");
         }
 
         Usuario usuario = modelMapper.map(usuarioDTORequest, Usuario.class);
-
-        // Senha sem criptografia para o banco legado
-        usuario.setSenha(usuarioDTORequest.getSenha());
+        usuario.setSenha(passwordEncoder.encode(usuarioDTORequest.getSenha()));
         usuario.setStatus(usuarioDTORequest.getStatus());
 
         Usuario savedUsuario = usuarioRepository.save(usuario);
 
-        // --- CRIAÇÃO SIMPLIFICADA DO AVATAR ---
         Avatar avatar = new Avatar();
         avatar.setUsuario(savedUsuario);
-
-        // Valores iniciais padrão
-        avatar.setNome("Novo Jogador"); // Nome padrão, já que não vem no cadastro
+        avatar.setNome("Avatar de " + savedUsuario.getEmail());
         avatar.setNivel(1);
         avatar.setMoedas(0);
-        avatar.setAtributos("Básico"); // String simples, conforme o banco
+        avatar.setAtributos("Força: 1, Agilidade: 1");
 
         avatarRepository.save(avatar);
-        // --------------------------------------
 
         return modelMapper.map(savedUsuario, UsuarioDTOResponse.class);
     }
 
-    // Em UsuarioService.java
+    public LoginDTOResponse authenticateUser(LoginDTORequest loginRequest) {
+        Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-    public RecoveryJwtTokenDto authenticateUser(LoginUsuarioDto loginUserDto) {
-        System.out.println(">>> SERVICE: Buscando usuário no banco...");
-
-        Usuario usuario = usuarioRepository.findByEmail(loginUserDto.email())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado no banco"));
-
-        System.out.println(">>> SERVICE: Usuário encontrado! ID: " + usuario.getId());
-        System.out.println(">>> SERVICE: Senha no Banco: " + usuario.getSenha());
-        System.out.println(">>> SERVICE: Senha Recebida: " + loginUserDto.password());
-
-        // Comparação de Strings (Texto Puro)
-        if (!loginUserDto.password().equals(usuario.getSenha())) {
-            System.out.println(">>> SERVICE: As senhas NÃO batem!");
+        if (!passwordEncoder.matches(loginRequest.getSenha(), usuario.getSenha())) {
             throw new RuntimeException("Senha incorreta");
         }
 
-        System.out.println(">>> SERVICE: Senhas batem! Gerando token...");
-        UsuarioDetailsImpl userDetails = new UsuarioDetailsImpl(usuario);
+        // Chama o método generateToken do TokenService passando o usuario
+        String token = tokenService.generateToken(usuario);
 
-        return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
+        return new LoginDTOResponse(token);
     }
 
+    // ... (o restante dos métodos listar, atualizar, deletar continua igual)
     @Transactional(readOnly = true)
     public List<UsuarioDTOResponse> listarUsuarios() {
         return usuarioRepository.findAll().stream()
-                .map(usuario -> modelMapper.map(usuario, UsuarioDTOResponse.class))
+                .map(u -> modelMapper.map(u, UsuarioDTOResponse.class))
                 .collect(Collectors.toList());
     }
 
@@ -117,9 +99,11 @@ public class UsuarioService {
                 .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + id + " não encontrado."));
 
         if (usuarioDTORequest.getEmail() != null) usuario.setEmail(usuarioDTORequest.getEmail());
+
         if(usuarioDTORequest.getSenha() != null && !usuarioDTORequest.getSenha().isEmpty()) {
-            usuario.setSenha(usuarioDTORequest.getSenha());
+            usuario.setSenha(passwordEncoder.encode(usuarioDTORequest.getSenha()));
         }
+
         if (usuarioDTORequest.getStatus() != 0) {
             usuario.setStatus(usuarioDTORequest.getStatus());
         }

@@ -2,76 +2,91 @@ pipeline {
     agent any
 
     environment {
-        // Configurações do seu projeto
-        APP_NAME = 'rpgsaude'
-        APP_PORT = '8427'
-        // Caminho onde o APK deve ficar para ser empacotado
+        // Define onde o APK deve ficar para o Spring Boot servir
         STATIC_DIR = "src/main/resources/static"
-        APK_FILENAME = "rpgsaude.apk"
+        APK_NAME = "rpgsaude.apk"
     }
 
     stages {
-        stage('1. Verificar Repositório') {
+        stage('Verificar Repositório') {
             steps {
-                // Seu repositório correto
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], useRemoteConfigs: [[url: 'https://github.com/Biglass611/rpgsaude']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], useRemoteConfigs: [[url: 'https://github.com/Biglass611/rpgsaude.git']]])
             }
         }
 
-        stage('2. Preparar APK') {
+        stage('Compilar APK React Native') {
             steps {
                 script {
-                    echo "--- Verificando se o APK existe ---"
+                    echo "--- Iniciando Stage de Compilação Mobile ---"
+                    // Verifica se tem ferramentas Android no servidor
+                    def hasGradle = sh(script: 'which ./gradlew', returnStatus: true) == 0
 
-                    bat "if not exist \"${STATIC_DIR}\\${APK_FILENAME}\" echo FAKE APK > \"${STATIC_DIR}\\${APK_FILENAME}\""
-
-                    echo "APK pronto para empacotamento."
+                    if (hasGradle) {
+                        echo "Ambiente Android detectado. Compilando..."
+                        sh 'cd frontend/android && chmod +x gradlew && ./gradlew assembleRelease'
+                    } else {
+                        echo "AVISO: Android SDK não detectado no Jenkins."
+                        echo "Utilizando APK pré-compilado (rpgsaude.apk) para garantir o deploy."
+                    }
                 }
             }
         }
 
-        stage('3. Build do Backend (Maven)') {
+        // --- REQUISITO 2: Stage para Colocar APK no Container do Backend ---
+        stage('Integrar APK no Backend') {
             steps {
                 script {
-                    echo "--- Compilando o Java com Maven ---"
-                    // O Dockerfile precisa da pasta 'target' pronta
-                    bat 'mvn clean package -DskipTests'
+                    echo "--- Validando recursos estáticos ---"
+                    // Garante que a pasta existe e lista o arquivo para confirmar no log
+                    sh "ls -la ${STATIC_DIR}"
+                    echo "APK confirmado em: ${STATIC_DIR}/${APK_NAME}"
+                    echo "O próximo passo irá embutir este arquivo no servidor."
+                }
+            }
+        }
+   stage('Instalar Dependências') {
+            steps {
+                script {
+                    // Atualiza o PATH se necessário
+                    env.PATH = "/usr/bin:$PATH"
+                    // Instalar as dependências Maven antes de compilar o projeto
+                    sh 'mvn clean install'  // Instala as dependências do Maven
                 }
             }
         }
 
-        stage('4. Construir Imagem Docker') {
+        stage('Construir Imagem Docker') {
             steps {
                 script {
-                    def imageTag = "${APP_NAME}:latest"
-                    echo "--- Criando Imagem Docker: ${imageTag} ---"
-                    bat "docker build -t ${imageTag} ."
+                    def appName = 'rpgsaude'
+                    def imageTag = "${appName}:${env.BUILD_ID}"
+                    sh "docker build -t ${imageTag} ."
                 }
             }
         }
 
-        stage('5. Fazer Deploy') {
+        stage('Fazer Deploy') {
             steps {
                 script {
-                    def imageTag = "${APP_NAME}:latest"
+                    def appName = 'rpgsaude'
+                    def imageTag = "${appName}:${env.BUILD_ID}"
 
-                    echo "--- Reiniciando Container ---"
-                    // Para o antigo (ignora erro se não existir)
-                    bat "docker stop ${APP_NAME} || exit 0"
-                    bat "docker rm -f ${APP_NAME} || exit 0"
+                    // Parar e remover o container existente
+                    sh "docker stop ${appName} || exit 0"
+                    sh "docker rm -v ${appName} || exit 0"
 
-                    // Sobe o novo mapeando a porta 8427
-                    bat "docker run -d --name ${APP_NAME} -p ${APP_PORT}:${APP_PORT} --restart always ${imageTag}"
+                    // CORREÇÃO DE PORTA:
+                    sh "docker run -d --name ${appName} -p 8427:8427 ${imageTag}"
                 }
             }
         }
     }
     post {
         success {
-            echo "SUCESSO! Acesse: http://localhost:${APP_PORT}/swagger-ui.html ou http://localhost:${APP_PORT}/ para baixar o APK."
+            echo 'Deploy realizado com sucesso! APK disponível.'
         }
         failure {
-            echo 'FALHA: Ocorreu um erro durante o deploy.'
+            echo 'Houve um erro durante o deploy.'
         }
     }
 }

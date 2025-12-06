@@ -1,6 +1,6 @@
 package com.senac.rpgsaude.security;
 
-import com.senac.rpgsaude.entity.Usuario; // Certifique-se que sua classe se chama 'User' ou mude para 'Usuario'
+import com.senac.rpgsaude.entity.Usuario; // Use sua entidade Usuario
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -19,15 +19,15 @@ public class TokenService {
     private String secret;
 
     private Key getSigningKey() {
-        // Decodifica a chave secreta definida no application.properties
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    // Método gera o token recebendo o Usuario
     public String generateToken(Usuario usuario) {
         return Jwts.builder()
-                .setIssuer("rpgsaude-api") // ⬅️ Mudei para o nome do seu projeto
-                .setSubject(usuario.getEmail())
+                .setIssuer("rpgsaude-api")
+                .setSubject(usuario.getEmail()) // Usa o email como subject
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24 horas
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -42,7 +42,6 @@ public class TokenService {
                     .parseClaimsJws(token)
                     .getBody();
 
-            // ⬅️ Valida se o token foi gerado pelo seu projeto
             if ("rpgsaude-api".equals(claims.getIssuer())) {
                 return claims.getSubject();
             }
