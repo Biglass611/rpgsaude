@@ -2,9 +2,11 @@ pipeline {
     agent any
 
     environment {
-        // Define onde o APK deve ficar para o Spring Boot servir
+        // Suas configurações
         STATIC_DIR = "src/main/resources/static"
         APK_NAME = "rpgsaude.apk"
+        APP_NAME = "rpgsaude"
+        APP_PORT = "8427"
     }
 
     stages {
@@ -14,43 +16,46 @@ pipeline {
             }
         }
 
+        // --- REQUISITO 1: Compilar APK (Adaptado para Windows) ---
         stage('Compilar APK React Native') {
             steps {
                 script {
                     echo "--- Iniciando Stage de Compilação Mobile ---"
-                    // Verifica se tem ferramentas Android no servidor
-                    def hasGradle = sh(script: 'which ./gradlew', returnStatus: true) == 0
+
+                    // No Windows, verificamos se o gradlew.bat existe
+                    def hasGradle = fileExists('mobile/android/gradlew.bat')
 
                     if (hasGradle) {
                         echo "Ambiente Android detectado. Compilando..."
-                        sh 'cd frontend/android && chmod +x gradlew && ./gradlew assembleRelease'
+                        // Comandos Windows
+                        bat 'cd mobile/android && gradlew.bat assembleRelease'
+                        // Copiar no Windows é 'copy' ou 'xcopy', e as barras são invertidas
+                        bat "copy mobile\\android\\app\\build\\outputs\\apk\\release\\app-release.apk ${STATIC_DIR}\\${APK_NAME}"
                     } else {
-                        echo "AVISO: Android SDK não detectado no Jenkins."
-                        echo "Utilizando APK pré-compilado (rpgsaude.apk) para garantir o deploy."
+                        echo "AVISO: Android SDK/Gradle não detectado ou pasta incorreta."
+                        echo "Utilizando APK pré-compilado (${APK_NAME}) que já está na pasta static."
                     }
                 }
             }
         }
 
-        // --- REQUISITO 2: Stage para Colocar APK no Container do Backend ---
+        // --- REQUISITO 2: Validar APK ---
         stage('Integrar APK no Backend') {
             steps {
                 script {
                     echo "--- Validando recursos estáticos ---"
-                    // Garante que a pasta existe e lista o arquivo para confirmar no log
-                    sh "ls -la ${STATIC_DIR}"
-                    echo "APK confirmado em: ${STATIC_DIR}/${APK_NAME}"
-                    echo "O próximo passo irá embutir este arquivo no servidor."
+                    // Comando Windows para listar
+                    bat "dir ${STATIC_DIR}"
+                    echo "APK confirmado."
                 }
             }
         }
-   stage('Instalar Dependências') {
+
+        stage('Instalar Dependências (Maven)') {
             steps {
                 script {
-                    // Atualiza o PATH se necessário
-                    env.PATH = "/usr/bin:$PATH"
-                    // Instalar as dependências Maven antes de compilar o projeto
-                    sh 'mvn clean install'  // Instala as dependências do Maven
+                    // Maven no Windows
+                    bat 'mvn clean install -DskipTests'
                 }
             }
         }
@@ -58,9 +63,8 @@ pipeline {
         stage('Construir Imagem Docker') {
             steps {
                 script {
-                    def appName = 'rpgsaude'
-                    def imageTag = "${appName}:${env.BUILD_ID}"
-                    sh "docker build -t ${imageTag} ."
+                    def imageTag = "${APP_NAME}:latest"
+                    bat "docker build -t ${imageTag} ."
                 }
             }
         }
@@ -68,25 +72,24 @@ pipeline {
         stage('Fazer Deploy') {
             steps {
                 script {
-                    def appName = 'rpgsaude'
-                    def imageTag = "${appName}:${env.BUILD_ID}"
+                    def imageTag = "${APP_NAME}:latest"
 
-                    // Parar e remover o container existente
-                    sh "docker stop ${appName} || exit 0"
-                    sh "docker rm -v ${appName} || exit 0"
+                    // Comandos Docker no Windows
+                    bat "docker stop ${APP_NAME} || exit 0"
+                    bat "docker rm -f ${APP_NAME} || exit 0"
 
-                    // CORREÇÃO DE PORTA:
-                    sh "docker run -d --name ${appName} -p 8427:8427 ${imageTag}"
+                    // Subir Container
+                    bat "docker run -d --name ${APP_NAME} -p ${APP_PORT}:${APP_PORT} --restart always ${imageTag}"
                 }
             }
         }
     }
     post {
         success {
-            echo 'Deploy realizado com sucesso! APK disponível.'
+            echo "SUCESSO! Acesse: http://localhost:${APP_PORT}/rpgsaude"
         }
         failure {
-            echo 'Houve um erro durante o deploy.'
+            echo 'FALHA: Ocorreu um erro durante o deploy.'
         }
     }
 }
