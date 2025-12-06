@@ -31,8 +31,10 @@ public class UsuarioService implements UserDetailsService {
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private RoleRepository roleRepository;
 
+    // --- MÉTODO OBRIGATÓRIO DO SPRING SECURITY ---
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // Busca o usuário pelo email e retorna ele mesmo (pois implementa UserDetails)
         return usuarioRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com email: " + username));
     }
@@ -45,16 +47,15 @@ public class UsuarioService implements UserDetailsService {
 
         Usuario usuario = modelMapper.map(usuarioDTORequest, Usuario.class);
 
-        // 🔒 Criptografia da Senha
+        // 🔒 Criptografa a senha antes de salvar
         usuario.setSenha(passwordEncoder.encode(usuarioDTORequest.getSenha()));
 
-        // ✅ Garante Status Ativo (1) por padrão
+        // ✅ Garante Status Ativo (1)
         usuario.setStatus(1);
 
-        // ✅ Define a Role Padrão (USER - ID 1)
-        // Isso evita que a tabela usuario_role fique vazia
+        // ✅ Define a Role Padrão (USER - ID 1) para evitar tabela vazia
         Role roleUser = roleRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Role USER não encontrada no banco."));
+                .orElseThrow(() -> new RuntimeException("Role USER (ID 1) não encontrada no banco."));
         usuario.setRoles(List.of(roleUser));
 
         Usuario savedUsuario = usuarioRepository.save(usuario);
@@ -72,16 +73,17 @@ public class UsuarioService implements UserDetailsService {
         return modelMapper.map(savedUsuario, UsuarioDTOResponse.class);
     }
 
+    // MÉTODO DE LOGIN (USANDO OS NOVOS DTOs)
     public LoginDTOResponse authenticateUser(LoginDTORequest loginRequest) {
         Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        // 🔒 Compara Senha (BCrypt)
+        // 🔒 Compara a senha enviada (plana) com a do banco (hash BCrypt)
         if (!passwordEncoder.matches(loginRequest.getSenha(), usuario.getSenha())) {
             throw new RuntimeException("Senha incorreta");
         }
 
-        // Gera Token
+        // Gera o token
         String token = tokenService.generateToken(usuario);
 
         return new LoginDTOResponse(token);
@@ -108,7 +110,7 @@ public class UsuarioService implements UserDetailsService {
 
         if (usuarioDTORequest.getEmail() != null) usuario.setEmail(usuarioDTORequest.getEmail());
 
-        // Atualiza senha com criptografia se for enviada
+        // Se atualizar a senha, criptografa novamente
         if(usuarioDTORequest.getSenha() != null && !usuarioDTORequest.getSenha().isEmpty()) {
             usuario.setSenha(passwordEncoder.encode(usuarioDTORequest.getSenha()));
         }

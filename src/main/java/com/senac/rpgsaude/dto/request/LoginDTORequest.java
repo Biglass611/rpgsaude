@@ -4,9 +4,11 @@ public class LoginDTORequest {
     private String email;
     private String senha;
 
-    // Getters e Setters
+    // Getters
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
     public String getSenha() { return senha; }
+
+    // Setters
+    public void setEmail(String email) { this.email = email; }
     public void setSenha(String senha) { this.senha = senha; }
 }

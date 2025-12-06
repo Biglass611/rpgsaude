@@ -1,7 +1,7 @@
 package com.senac.rpgsaude.controller;
 
-import com.senac.rpgsaude.dto.request.LoginDTORequest; // Import Novo
-import com.senac.rpgsaude.dto.response.LoginDTOResponse; // Import Novo
+import com.senac.rpgsaude.dto.request.LoginDTORequest;
+import com.senac.rpgsaude.dto.response.LoginDTOResponse;
 import com.senac.rpgsaude.dto.request.UsuarioDTORequest;
 import com.senac.rpgsaude.dto.response.UsuarioDTOResponse;
 import com.senac.rpgsaude.service.UsuarioService;
@@ -24,14 +24,14 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-    // --- CORREÇÃO AQUI ---
+    // --- Endpoint de Login Atualizado ---
     @PostMapping("/login")
     @Operation(summary = "Login do usuário", description = "Autentica um usuário e retorna um token JWT")
     public ResponseEntity<LoginDTOResponse> login(@RequestBody LoginDTORequest loginRequest) {
         LoginDTOResponse token = usuarioService.authenticateUser(loginRequest);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
-    // ---------------------
+    // ------------------------------------
 
     @PostMapping("/criar")
     @Operation(summary = "Criar novo usuário", description = "Endpoint para criar um novo registro de usuário")
