@@ -6,9 +6,7 @@ import com.senac.rpgsaude.dto.request.UsuarioDTORequest;
 import com.senac.rpgsaude.dto.response.UsuarioDTOResponse;
 import com.senac.rpgsaude.entity.*;
 import com.senac.rpgsaude.repository.*;
-import com.senac.rpgsaude.security.TokenService; // Importa o novo TokenService
-// Removemos o import do JwtTokenService antigo se ele existir
-
+import com.senac.rpgsaude.security.TokenService;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
@@ -29,10 +27,9 @@ public class UsuarioService implements UserDetailsService {
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private ModelMapper modelMapper;
     @Autowired private AvatarRepository avatarRepository;
-
-    @Autowired private TokenService tokenService; // Usamos o TokenService aqui
-
+    @Autowired private TokenService tokenService;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private RoleRepository roleRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -47,11 +44,22 @@ public class UsuarioService implements UserDetailsService {
         }
 
         Usuario usuario = modelMapper.map(usuarioDTORequest, Usuario.class);
+
+        // 🔒 Criptografia da Senha
         usuario.setSenha(passwordEncoder.encode(usuarioDTORequest.getSenha()));
-        usuario.setStatus(usuarioDTORequest.getStatus());
+
+        // ✅ Garante Status Ativo (1) por padrão
+        usuario.setStatus(1);
+
+        // ✅ Define a Role Padrão (USER - ID 1)
+        // Isso evita que a tabela usuario_role fique vazia
+        Role roleUser = roleRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Role USER não encontrada no banco."));
+        usuario.setRoles(List.of(roleUser));
 
         Usuario savedUsuario = usuarioRepository.save(usuario);
 
+        // Criação automática do Avatar
         Avatar avatar = new Avatar();
         avatar.setUsuario(savedUsuario);
         avatar.setNome("Avatar de " + savedUsuario.getEmail());
@@ -68,17 +76,17 @@ public class UsuarioService implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
+        // 🔒 Compara Senha (BCrypt)
         if (!passwordEncoder.matches(loginRequest.getSenha(), usuario.getSenha())) {
             throw new RuntimeException("Senha incorreta");
         }
 
-        // Chama o método generateToken do TokenService passando o usuario
+        // Gera Token
         String token = tokenService.generateToken(usuario);
 
         return new LoginDTOResponse(token);
     }
 
-    // ... (o restante dos métodos listar, atualizar, deletar continua igual)
     @Transactional(readOnly = true)
     public List<UsuarioDTOResponse> listarUsuarios() {
         return usuarioRepository.findAll().stream()
@@ -100,6 +108,7 @@ public class UsuarioService implements UserDetailsService {
 
         if (usuarioDTORequest.getEmail() != null) usuario.setEmail(usuarioDTORequest.getEmail());
 
+        // Atualiza senha com criptografia se for enviada
         if(usuarioDTORequest.getSenha() != null && !usuarioDTORequest.getSenha().isEmpty()) {
             usuario.setSenha(passwordEncoder.encode(usuarioDTORequest.getSenha()));
         }
