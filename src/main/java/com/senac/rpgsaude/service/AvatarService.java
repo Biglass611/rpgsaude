@@ -6,120 +6,123 @@ import com.senac.rpgsaude.entity.Avatar;
 import com.senac.rpgsaude.entity.Usuario;
 import com.senac.rpgsaude.repository.AvatarRepository;
 import com.senac.rpgsaude.repository.UsuarioRepository;
-import jakarta.persistence.EntityNotFoundException;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections; // Importante
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class AvatarService {
 
-    private final AvatarRepository avatarRepository;
-    private final UsuarioRepository usuarioRepository;
-    private final ModelMapper modelMapper;
-
-    // Removidos: AvatarMoedasRepository e AtributosRepository (não existem mais)
     @Autowired
-    public AvatarService(AvatarRepository avatarRepository, UsuarioRepository usuarioRepository, ModelMapper modelMapper) {
-        this.avatarRepository = avatarRepository;
-        this.usuarioRepository = usuarioRepository;
-        this.modelMapper = modelMapper;
-    }
+    private AvatarRepository avatarRepository;
 
-    @Transactional
-    public AvatarDTOResponse criarAvatar(AvatarDTORequest avatarDTORequest) {
-        Usuario usuario = usuarioRepository.findById(avatarDTORequest.getUsuarioId())
-                .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + avatarDTORequest.getUsuarioId() + " não encontrado."));
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    // ==================================================================================
+    // 1. CRIAR
+    // ==================================================================================
+    public AvatarDTOResponse criarAvatar(AvatarDTORequest avatarDTORequest, String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com email: " + email));
+
+        if (avatarRepository.findByUsuario(usuario).isPresent()) {
+            throw new RuntimeException("Este usuário já possui um avatar criado.");
+        }
 
         Avatar avatar = new Avatar();
-
-        // Conversão de Tipos: O DTO manda Double, mas o Banco é Integer/String
-        if (avatarDTORequest.getNivel() != null) {
-            avatar.setNivel(avatarDTORequest.getNivel().intValue());
-        }
-        if (avatarDTORequest.getMoedas() != null) {
-            avatar.setMoedas(avatarDTORequest.getMoedas().intValue());
-        }
-        if (avatarDTORequest.getAtributos1() != null) {
-            // Converte o valor numérico para String, pois o banco é VARCHAR
-            avatar.setAtributos(String.valueOf(avatarDTORequest.getAtributos1()));
-        }
-
-        // Define nome padrão se não vier no request (opcional)
-        avatar.setNome("Avatar de " + usuario.getEmail());
-
+        avatar.setNome(avatarDTORequest.getNome());
+        avatar.setAtributos(avatarDTORequest.getAtributos());
+        avatar.setMoedas(avatarDTORequest.getMoedas());
+        avatar.setNivel(avatarDTORequest.getNivel());
         avatar.setUsuario(usuario);
 
-        // Salva diretamente na tabela 'avatar'
-        Avatar savedAvatar = avatarRepository.save(avatar);
+        avatar = avatarRepository.save(avatar);
 
-        return modelMapper.map(savedAvatar, AvatarDTOResponse.class);
+        return converterParaResponse(avatar);
     }
 
-    @Transactional(readOnly = true)
-    public List<AvatarDTOResponse> listarAvatar() {
-        return avatarRepository.listarTodosAvatares().stream()
-                .map(avatar -> modelMapper.map(avatar, AvatarDTOResponse.class))
-                .collect(Collectors.toList());
-    }
+    // ==================================================================================
+    // 2. LEITURA (AGORA FILTRANDO PELO USUÁRIO LOGADO)
+    // ==================================================================================
 
-    @Transactional(readOnly = true)
-    public AvatarDTOResponse listarPorId(Long id) {
-        Avatar avatar = avatarRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + id + " não encontrado."));
-        return modelMapper.map(avatar, AvatarDTOResponse.class);
-    }
+    // Mudei o nome do parâmetro para ficar claro que recebemos o EMAIL do token
+    public List<AvatarDTOResponse> listarAvatarDoUsuario(String email) {
 
-    @Transactional
-    public AvatarDTOResponse atualizarAvatar(Long id, AvatarDTORequest avatarDTORequest) {
-        Avatar avatar = avatarRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + id + " não encontrado."));
+        // 1. Acha quem é o usuário dono do Token
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
 
-        // Atualização manual para garantir conversão de tipos
-        if (avatarDTORequest.getNivel() != null) avatar.setNivel(avatarDTORequest.getNivel().intValue());
-        if (avatarDTORequest.getMoedas() != null) avatar.setMoedas(avatarDTORequest.getMoedas().intValue());
-        if (avatarDTORequest.getAtributos1() != null) avatar.setAtributos(String.valueOf(avatarDTORequest.getAtributos1()));
+        // 2. Busca no banco se existe avatar vinculado a ESTE usuário
+        Optional<Avatar> avatarOp = avatarRepository.findByUsuario(usuario);
 
-        if (avatarDTORequest.getUsuarioId() != null) {
-            Usuario usuario = usuarioRepository.findById(avatarDTORequest.getUsuarioId())
-                    .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + avatarDTORequest.getUsuarioId() + " não encontrado."));
-            avatar.setUsuario(usuario);
+        // 3. Se existir, retorna uma lista contendo só ele. Se não, retorna lista vazia.
+        if (avatarOp.isPresent()) {
+            return List.of(converterParaResponse(avatarOp.get()));
+        } else {
+            return Collections.emptyList(); // Retorna lista vazia []
         }
-
-        Avatar updatedAvatar = avatarRepository.save(avatar);
-        return modelMapper.map(updatedAvatar, AvatarDTOResponse.class);
     }
 
-    @Transactional
+    public AvatarDTOResponse listarPorId(Long id) {
+        Avatar avatar = buscarAvatarPorId(id);
+        return converterParaResponse(avatar);
+    }
+
+    // ==================================================================================
+    // 3. ATUALIZAR, DELETAR e MÉTODOS AUXILIARES (IGUAL AO SEU)
+    // ==================================================================================
+    public AvatarDTOResponse atualizarAvatar(Long id, AvatarDTORequest request) {
+        Avatar avatar = buscarAvatarPorId(id);
+        avatar.setNome(request.getNome());
+        avatar.setNivel(request.getNivel());
+        avatar.setMoedas(request.getMoedas());
+        avatar.setAtributos(request.getAtributos());
+        avatar = avatarRepository.save(avatar);
+        return converterParaResponse(avatar);
+    }
+
     public void deletarAvatar(Long id) {
         if (!avatarRepository.existsById(id)) {
-            throw new EntityNotFoundException("Avatar com ID " + id + " não encontrado.");
+            throw new RuntimeException("Avatar não encontrado para exclusão com ID: " + id);
         }
         avatarRepository.deleteById(id);
     }
 
-    @Transactional
-    public void adicionarMoedas(Long avatarId, Integer quantidade) {
-        Avatar avatar = avatarRepository.findById(avatarId)
-                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + avatarId + " não encontrado."));
-
-        int novaQuantidade = (avatar.getMoedas() != null ? avatar.getMoedas() : 0) + quantidade;
-        avatar.setMoedas(novaQuantidade);
-
+    public AvatarDTOResponse adicionarMoedas(Long id, Integer quantidade) {
+        Avatar avatar = buscarAvatarPorId(id);
+        Integer saldoAtual = avatar.getMoedas() != null ? avatar.getMoedas() : 0;
+        avatar.setMoedas(saldoAtual + quantidade);
         avatarRepository.save(avatar);
+        return converterParaResponse(avatar);
     }
-    // ... dentro de AvatarService ...
 
-    @Transactional
-    public void atualizarAtributos(Long avatarId, String novosAtributos) {
-        Avatar avatar = avatarRepository.findById(avatarId)
-                .orElseThrow(() -> new EntityNotFoundException("Avatar com ID " + avatarId + " não encontrado."));
-
+    public AvatarDTOResponse atualizarAtributos(Long id, String novosAtributos) {
+        Avatar avatar = buscarAvatarPorId(id);
         avatar.setAtributos(novosAtributos);
         avatarRepository.save(avatar);
+        return converterParaResponse(avatar);
+    }
+
+    private Avatar buscarAvatarPorId(Long id) {
+        return avatarRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Avatar não encontrado com ID: " + id));
+    }
+
+    private AvatarDTOResponse converterParaResponse(Avatar avatar) {
+        AvatarDTOResponse response = new AvatarDTOResponse();
+        response.setId(avatar.getId());
+        response.setNome(avatar.getNome());
+        response.setAtributos(avatar.getAtributos());
+        response.setMoedas(avatar.getMoedas());
+        response.setNivel(avatar.getNivel());
+        if (avatar.getUsuario() != null) {
+            response.setUsuarioId(avatar.getUsuario().getId());
+        }
+        return response;
     }
 }

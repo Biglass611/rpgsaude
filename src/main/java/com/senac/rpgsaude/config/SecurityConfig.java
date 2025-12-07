@@ -76,14 +76,21 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 1. Libera rotas públicas (Login, Swagger, etc)
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 2. Rotas de ADMIN continuam protegidas (opcional, pode mudar para authenticated() se quiser testar tudo)
                         .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMIN")
-                        .requestMatchers(ENDPOINTS_USER).hasRole("USER")
-                        .requestMatchers(ENDPOINTS_USER).hasRole("ADMIN")
+
+                        // 3. AQUI ESTÁ A CORREÇÃO:
+                        // Mudamos de .hasRole("USER") para .authenticated()
+                        // Isso diz: "Se tem token válido, pode entrar em endpoints de usuário"
+                        .requestMatchers(ENDPOINTS_USER).authenticated()
+
+                        // 4. Qualquer outra rota também exige autenticação
                         .anyRequest().authenticated()
                 )
-                // CORREÇÃO AQUI: Removemos o ponto e vírgula e encadeamos o .build()
                 .addFilterBefore(userAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

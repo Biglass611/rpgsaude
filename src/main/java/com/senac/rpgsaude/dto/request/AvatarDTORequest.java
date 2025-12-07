@@ -1,50 +1,42 @@
-
 package com.senac.rpgsaude.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+
 public class AvatarDTORequest {
-    @NotNull
-    private Double atributos1;
-    @NotNull
-    private Double moedas;
-    @NotNull
-    private Double nivel;
-    @NotNull
+
+    @NotBlank(message = "O nome é obrigatório")
+    private String nome;
+
+    @NotNull(message = "Atributos são obrigatórios")
+    private String atributos; // Mudado para String para casar com a Entity
+
+    @NotNull(message = "Moedas são obrigatórias")
+    @PositiveOrZero
+    private Integer moedas;   // Mudado para Integer
+
+    @NotNull(message = "O nível é obrigatório")
+    @PositiveOrZero
+    private Integer nivel;    // Mudado para Integer
+
+    @NotNull(message = "O ID do usuário é obrigatório")
     private Integer usuarioId;
 
+    // --- Getters e Setters ---
 
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public Double getMoedas() {
-        return moedas;
-    }
+    public String getAtributos() { return atributos; }
+    public void setAtributos(String atributos) { this.atributos = atributos; }
 
-    public void setMoedas(Double moedas) {
-        this.moedas = moedas;
-    }
+    public Integer getMoedas() { return moedas; }
+    public void setMoedas(Integer moedas) { this.moedas = moedas; }
 
-    public Double getAtributos1() {
-        return atributos1;
-    }
+    public Integer getNivel() { return nivel; }
+    public void setNivel(Integer nivel) { this.nivel = nivel; }
 
-    public void setAtributos1(Double atributos1) {
-        this.atributos1 = atributos1;
-    }
-
-    public Double getNivel() {
-        return nivel;
-    }
-
-    public void setNivel(Double nivel) {
-        this.nivel = nivel;
-    }
-
-
-
-
-    public Integer getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Integer usuarioId) {
-        this.usuarioId = usuarioId;
-    }
+    public Integer getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Integer usuarioId) { this.usuarioId = usuarioId; }
 }
