@@ -1,19 +1,23 @@
 package com.senac.rpgsaude.service;
 
-import com.senac.rpgsaude.dto.request.LoginDTORequest;
-import com.senac.rpgsaude.dto.response.LoginDTOResponse;
+import com.senac.rpgsaude.dto.LoginUserDto;
+import com.senac.rpgsaude.dto.RecoveryJwtTokenDto;
 import com.senac.rpgsaude.dto.request.UsuarioDTORequest;
 import com.senac.rpgsaude.dto.response.UsuarioDTOResponse;
-import com.senac.rpgsaude.entity.*;
-import com.senac.rpgsaude.repository.*;
-import com.senac.rpgsaude.security.TokenService;
+import com.senac.rpgsaude.entity.Role;
+import com.senac.rpgsaude.entity.RoleName;
+import com.senac.rpgsaude.entity.Usuario;
+import com.senac.rpgsaude.repository.RoleRepository;
+import com.senac.rpgsaude.repository.UsuarioRepository;
+import com.senac.rpgsaude.service.UserService.JwtTokenService;
+import com.senac.rpgsaude.service.UserService.UserDetailsImpl;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,73 +26,70 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class UsuarioService implements UserDetailsService {
+public class UsuarioService {
 
-    @Autowired private UsuarioRepository usuarioRepository;
-    @Autowired private ModelMapper modelMapper;
-    @Autowired private AvatarRepository avatarRepository;
-    @Autowired private TokenService tokenService;
-    @Autowired private PasswordEncoder passwordEncoder;
-    @Autowired private RoleRepository roleRepository;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    // --- MÉTODO OBRIGATÓRIO DO SPRING SECURITY ---
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Busca o usuário pelo email e retorna ele mesmo (pois implementa UserDetails)
-        return usuarioRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com email: " + username));
+    @Autowired
+    private JwtTokenService jwtTokenService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    // --- LOGIN ---
+    public RecoveryJwtTokenDto authenticateUser(LoginUserDto loginUserDto) {
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password());
+
+        Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+
+        // Ajuste: Cast para UserDetailsImpl conforme seu JwtTokenService espera
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
     }
 
+    // --- CRIAR USUÁRIO ---
     @Transactional
     public UsuarioDTOResponse criarUsuario(UsuarioDTORequest usuarioDTORequest) {
         if (usuarioRepository.findByEmail(usuarioDTORequest.getEmail()).isPresent()) {
             throw new EntityExistsException("E-mail já cadastrado.");
         }
 
-        Usuario usuario = modelMapper.map(usuarioDTORequest, Usuario.class);
+        Usuario usuario = new Usuario();
 
-        // 🔒 Criptografa a senha antes de salvar
+        // Mapeamento MANUAL (Seguro e evita erros de campos inexistentes)
+        usuario.setEmail(usuarioDTORequest.getEmail());
         usuario.setSenha(passwordEncoder.encode(usuarioDTORequest.getSenha()));
+        usuario.setStatus(1); // Força status ativo
 
-        // ✅ Garante Status Ativo (1)
-        usuario.setStatus(1);
+        // Busca a Role USER pelo nome (Cria se não existir)
+        Role role = roleRepository.findByName(RoleName.USER)
+                .orElseGet(() -> {
+                    Role novaRole = new Role();
+                    novaRole.setName(RoleName.USER);
+                    return roleRepository.save(novaRole);
+                });
 
-        // ✅ Define a Role Padrão (USER - ID 1) para evitar tabela vazia
-        Role roleUser = roleRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Role USER (ID 1) não encontrada no banco."));
-        usuario.setRoles(List.of(roleUser));
+        usuario.setRoles(List.of(role));
 
+        // Salva no banco (Sem nome, pois a tabela não tem coluna nome)
         Usuario savedUsuario = usuarioRepository.save(usuario);
-
-        // Criação automática do Avatar
-        Avatar avatar = new Avatar();
-        avatar.setUsuario(savedUsuario);
-        avatar.setNome("Avatar de " + savedUsuario.getEmail());
-        avatar.setNivel(1);
-        avatar.setMoedas(0);
-        avatar.setAtributos("Força: 1, Agilidade: 1");
-
-        avatarRepository.save(avatar);
 
         return modelMapper.map(savedUsuario, UsuarioDTOResponse.class);
     }
 
-    // MÉTODO DE LOGIN (USANDO OS NOVOS DTOs)
-    public LoginDTOResponse authenticateUser(LoginDTORequest loginRequest) {
-        Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        // 🔒 Compara a senha enviada (plana) com a do banco (hash BCrypt)
-        if (!passwordEncoder.matches(loginRequest.getSenha(), usuario.getSenha())) {
-            throw new RuntimeException("Senha incorreta");
-        }
-
-        // Gera o token
-        String token = tokenService.generateToken(usuario);
-
-        return new LoginDTOResponse(token);
-    }
-
+    // --- LISTAR TODOS ---
     @Transactional(readOnly = true)
     public List<UsuarioDTOResponse> listarUsuarios() {
         return usuarioRepository.findAll().stream()
@@ -96,22 +97,26 @@ public class UsuarioService implements UserDetailsService {
                 .collect(Collectors.toList());
     }
 
+    // --- LISTAR POR ID ---
     @Transactional(readOnly = true)
     public UsuarioDTOResponse listarPorId(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + id + " não encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
         return modelMapper.map(usuario, UsuarioDTOResponse.class);
     }
 
+    // --- ATUALIZAR ---
     @Transactional
     public UsuarioDTOResponse atualizarUsuario(Integer id, UsuarioDTORequest usuarioDTORequest) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + id + " não encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
 
-        if (usuarioDTORequest.getEmail() != null) usuario.setEmail(usuarioDTORequest.getEmail());
+        // Atualiza apenas Email, Senha e Status
+        if (usuarioDTORequest.getEmail() != null) {
+            usuario.setEmail(usuarioDTORequest.getEmail());
+        }
 
-        // Se atualizar a senha, criptografa novamente
-        if(usuarioDTORequest.getSenha() != null && !usuarioDTORequest.getSenha().isEmpty()) {
+        if (usuarioDTORequest.getSenha() != null && !usuarioDTORequest.getSenha().isBlank()) {
             usuario.setSenha(passwordEncoder.encode(usuarioDTORequest.getSenha()));
         }
 
@@ -119,14 +124,16 @@ public class UsuarioService implements UserDetailsService {
             usuario.setStatus(usuarioDTORequest.getStatus());
         }
 
-        Usuario updatedUsuario = usuarioRepository.save(usuario);
-        return modelMapper.map(updatedUsuario, UsuarioDTOResponse.class);
+        Usuario updated = usuarioRepository.save(usuario);
+        return modelMapper.map(updated, UsuarioDTOResponse.class);
     }
 
+    // --- DELETAR ---
     @Transactional
     public void deletarUsuario(Integer id) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + id + " não encontrado."));
-        usuarioRepository.delete(usuario);
+        if (!usuarioRepository.existsById(id)) {
+            throw new EntityNotFoundException("Usuário não encontrado.");
+        }
+        usuarioRepository.deleteById(id);
     }
 }

@@ -1,8 +1,9 @@
 package com.senac.rpgsaude.config;
 
-import com.senac.rpgsaude.security.SecurityFilter; // Importe seu filtro
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,26 +13,85 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration; // Importante para o celular
+
+import java.util.List;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.List; // Importante
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final SecurityFilter securityFilter;
+    @Autowired
+    private UserAuthenticationFilter userAuthenticationFilter;
 
-    public SecurityConfig(SecurityFilter securityFilter) {
-        this.securityFilter = securityFilter;
+    // 1. Endpoints ABERTOS
+    public static final String [] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED = {
+            "/users/login",
+            "/users/criar",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
+    };
+
+    // 2. Endpoints USER
+    public static final String [] ENDPOINTS_USER = {
+            "/users/atualizar/{id}",
+            "/users/listarPorId/{id}",
+            "/api/avatar/listar",
+            "/api/avatar/listarPorId/{id}",
+            "/api/avatar/criar",
+            "/api/avatar/atualizar/{id}",
+            "/api/avatar/deletar/{id}",
+            "/api/avatar/{id}/adicionar-moedas",
+            "/api/avatar/{id}/atualizar-atributos",
+            "/api/dungeon/listar",
+            "/api/dungeon/listarPorId/{id}",
+            "/api/dungeon/criar",
+            "/api/dungeon/atualizar/{id}",
+            "/api/dungeon/deletar/{id}",
+            "/api/dungeon/ranking/{desafioId}",
+            "/api/desafio/listar",
+            "/api/desafio/listarPorId/{id}",
+            "/api/recompensa/listar",
+            "/api/recompensa/listarPorId/{id}"
+    };
+
+    // 3. Endpoints ADMIN
+    public static final String [] ENDPOINTS_ADMIN = {
+            "/users/listar",
+            "/users/deletar/{id}",
+            "/api/desafio/criar",
+            "/api/desafio/deletar/{id}",
+            "/api/recompensa/criar",
+            "/api/recompensa/atualizar/{id}",
+            "/api/recompensa/deletar/{id}"
+    };
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMIN")
+                        .requestMatchers(ENDPOINTS_USER).hasRole("USER")
+                        .requestMatchers(ENDPOINTS_USER).hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                // CORREÇÃO AQUI: Removemos o ponto e vírgula e encadeamos o .build()
+                .addFilterBefore(userAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
-    // 1. Configuração de CORS (Permite que o celular acesse a API)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*")); // Libera para qualquer origem (celular)
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
 
@@ -41,28 +101,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Aplica o CORS
-                .csrf(csrf -> csrf.disable()) // Desativa CSRF (obrigatório para API)
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                .authorizeHttpRequests(auth -> auth
-                        // 2. LIBERA TUDO (Modo de Emergência para funcionar agora)
-                        .requestMatchers("/**").permitAll()
-                )
-                // Mantém o filtro para injetar o usuário no contexto se tiver token
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Mantém a criptografia que você já ativou
+        return new BCryptPasswordEncoder();
     }
 }
