@@ -13,7 +13,7 @@ pipeline {
                     // Atualiza o PATH se necessário
                     env.PATH = "/usr/bin:$PATH"
                     // Instalar as dependências Maven antes de compilar o projeto
-                    sh 'mvn clean install'  // Instala as dependências do Maven
+                    bat 'mvn clean install'  // Instala as dependências do Maven
                 }
             }
         }
@@ -25,7 +25,7 @@ pipeline {
                     def imageTag = "${appName}:${env.BUILD_ID}"
 
                     // Construir a imagem Docker
-                    sh "docker build -t ${imageTag} ."
+                    bat "docker build -t ${imageTag} ."
                 }
             }
         }
@@ -41,7 +41,7 @@ pipeline {
             		bat "docker rm -v ${appName} || exit 0"  // Remover o container e os volumes associados
 
                     // Executar o novo container
-                    sh "docker-compose up -d --build"
+                    bat "docker-compose up -d --build"
                 }
             }
         }
