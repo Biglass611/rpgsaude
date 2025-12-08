@@ -3,121 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RPG Saúde - Gamifique sua Vida</title>
+    <title>RPG Saúde - Projeto Mobile</title>
     <style>
-        /* Reset e Fonte */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        :root {
+            --primary: #8A2BE2; /* Roxo do seu App */
+            --dark: #121212;
+            --light: #f4f4f4;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* Degradê estilo RPG/Saúde (Azul Profundo para Verde Vida) */
-            background: linear-gradient(135deg, #2c3e50, #27ae60);
-            color: white;
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark);
+            color: var(--light);
             text-align: center;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
         }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h1 { margin: 0; font-size: 3rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        p.subtitle { font-size: 1.2rem; opacity: 0.9; margin-top: 10px; }
 
         .container {
-            background: rgba(0, 0, 0, 0.4); /* Fundo escuro translúcido */
-            backdrop-filter: blur(10px); /* Efeito de vidro */
-            padding: 50px 40px;
-            border-radius: 25px;
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
         }
 
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        h3 {
-            font-size: 1.5rem;
-            color: #bdc3c7;
-            font-weight: normal;
-            margin-bottom: 30px;
-        }
-
-        p {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            color: #ecf0f1;
-        }
-
-        ul {
+        .description {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            border-left: 5px solid var(--primary);
             text-align: left;
-            margin: 30px auto;
-            display: inline-block;
-            list-style: none;
         }
 
-        li {
-            margin-bottom: 12px;
-            font-size: 1.1rem;
+        .screenshots {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 50px;
         }
 
-        .btn {
-            display: inline-block;
-            background-color: #2ecc71; /* Verde Vibrante */
-            color: #fff;
-            padding: 18px 40px;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 50px;
-            margin-top: 30px;
-            font-size: 1.3rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        /* Moldura de celular para os prints */
+        .phone-frame {
+            width: 200px; /* Largura do print */
+            height: 400px; /* Altura do print */
+            border: 8px solid #333;
+            border-radius: 20px;
+            overflow: hidden;
+            background-color: #000;
+            position: relative;
+        }
+        .phone-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
-        .btn:hover {
-            transform: translateY(-3px) scale(1.05);
+        .download-area {
+            background-color: #1c1c2e;
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid #444;
+        }
+
+        .btn-download {
             background-color: #27ae60;
-            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.6);
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            font-weight: bold;
+            display: inline-block;
+            transition: transform 0.2s, background 0.2s;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .btn-download:hover {
+            transform: scale(1.05);
+            background-color: #2ecc71;
         }
 
-        .footer {
+        .qr-box {
+            background: white;
+            padding: 15px;
+            display: inline-block;
+            border-radius: 10px;
+        }
+        .qr-box img {
+            display: block;
+        }
+
+        footer {
             margin-top: 50px;
-            font-size: 0.85rem;
-            opacity: 0.6;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 20px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
 
+<header>
+    <h1>RPG Saúde 🛡️</h1>
+    <p class="subtitle">Gamificação e Bem-estar na palma da sua mão</p>
+</header>
+
 <div class="container">
-    <h1>🛡️ RPG Saúde</h1>
-    <h3>Transforme seu esforço em XP.</h3>
 
-    <p>
-        O <strong>RPG Saúde</strong> não é apenas um app de treino. É a sua jornada do herói.
-        Conclua desafios físicos reais para evoluir seu personagem virtual, ganhar moedas e subir no ranking.
-    </p>
+    <div class="description">
+        <h2>Sobre o Projeto</h2>
+        <p>
+            O <strong>RPG Saúde</strong> é uma aplicação mobile inovadora desenvolvida com React Native,
+            que transforma hábitos saudáveis em uma jornada épica de RPG.
+        </p>
+        <p>
+            O usuário cria um avatar, entra em "Dungeons" (Grupos de Desafio) e ganha XP e Moedas
+            ao cumprir metas reais como hidratação, controle de IMC e exercícios físicos.
+            Todo o progresso é sincronizado com um back-end robusto em Java/Spring Boot.
+        </p>
+        <p><strong>Tecnologias:</strong> React Native, TypeScript, Java, Spring Boot, PostgreSQL.</p>
+    </div>
 
-    <ul>
-        <li>⚔️ <strong>Missões Diárias:</strong> Exercícios viram quests.</li>
-        <li>🛡️ <strong>Avatar:</strong> Evolua nível, atributos e equipamentos.</li>
-        <li>🏆 <strong>Guildas:</strong> Junte-se aos amigos e domine o ranking.</li>
-        <li>🔒 <strong>Segurança:</strong> Dados protegidos e login seguro.</li>
-    </ul>
+    <div class="screenshots">
+        <div class="phone-frame">
+            <img src="print1.png" alt="Tela Inicial do App" onerror="this.src='https://via.placeholder.com/200x400?text=Print+Home'">
+        </div>
+        <div class="phone-frame">
+            <img src="print2.png" alt="Tela de Ranking" onerror="this.src='https://via.placeholder.com/200x400?text=Print+Ranking'">
+        </div>
+        <div class="phone-frame">
+            <img src="print3.png" alt="Tela de Água" onerror="this.src='https://via.placeholder.com/200x400?text=Print+Agua'">
+        </div>
+    </div>
 
-    <a href="rpgsaude.apk" class="btn" download>📲 Baixar APK (Android)</a>
+    <div class="download-area">
+        <h3>Baixe agora o App (Android)</h3>
+        <p>Clique no botão abaixo ou escaneie o QR Code com seu celular.</p>
+
+        <br>
+
+        <a href="rpgsaude.apk" class="btn-download" download>
+            📥 Baixar APK
+        </a>
+
+        <br>
+
+        <div class="qr-box">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=http://academico3.rj.senac.br/rgpsaude/rpgsaude.apk" alt="QR Code Download">
+        </div>
+        <p style="color: #aaa; margin-top: 10px; font-size: 0.9rem;">
+            Link direto: http://academico3.rj.senac.br/rgpsaude/rpgsaude.apk
+        </p>
+    </div>
+
 </div>
 
-<div class="footer">
-    <p>Desenvolvido por Lucas Nunes • Projeto Integrador Senac Rio</p>
-    <p>Versão 1.0.0 • Build Automatizado</p>
-</div>
+<footer>
+    Desenvolvido para o Projeto Final de Mobile - Senac RJ
+</footer>
 
 </body>
 </html>
