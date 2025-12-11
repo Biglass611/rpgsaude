@@ -26,13 +26,20 @@ public class SecurityConfig {
     @Autowired
     private UserAuthenticationFilter userAuthenticationFilter;
 
-    // 1. Endpoints ABERTOS
+    // 1. Endpoints ABERTOS (Públicos)
+    // ADICIONEI AS ROTAS DO SITE AQUI EMBAIXO
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED = {
             "/users/login",
             "/users/criar",
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/swagger-ui.html"
+            "/swagger-ui.html",
+            "/",                 // Raiz
+            "/index.html",       // Arquivo principal do site
+            "/rpgsaude/**",      // Pasta específica que você mostrou no print
+            "/assets/**",        // CSS e JS
+            "/static/**",
+            "/favicon.ico"
     };
 
     // 2. Endpoints USER
@@ -76,16 +83,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Libera rotas públicas (Login, Swagger, etc)
+                        // 1. Libera rotas públicas (Login, Swagger e SITE agora)
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // 2. Rotas de ADMIN continuam protegidas (opcional, pode mudar para authenticated() se quiser testar tudo)
+                        // 2. Rotas de ADMIN
                         .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMIN")
 
-                        // 3. AQUI ESTÁ A CORREÇÃO:
-                        // Mudamos de .hasRole("USER") para .authenticated()
-                        // Isso diz: "Se tem token válido, pode entrar em endpoints de usuário"
+                        // 3. Rotas de USER
                         .requestMatchers(ENDPOINTS_USER).authenticated()
 
                         // 4. Qualquer outra rota também exige autenticação
