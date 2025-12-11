@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>Gerenciamento</groupId>
-    <artifactId>Rpgsaude</artifactId>
+    <artifactId>rpgsaude</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Rpgsaude</name>
+    <name>rpgsaude</name>
     <description>Demo project for Spring Boot</description>
     <url/>
     <licenses>
@@ -80,6 +80,7 @@
 
 
     <build>
+        <finalName>rpgsaude</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
