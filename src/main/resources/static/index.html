@@ -4,169 +4,106 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RPG Saúde - Projeto Mobile</title>
+    <link rel="stylesheet" type='text/css' href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
+
     <style>
-        :root {
-            --primary: #8A2BE2; /* Roxo do seu App */
-            --dark: #121212;
-            --light: #f4f4f4;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--dark);
-            color: var(--light);
-            text-align: center;
-        }
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 60px 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        h1 { margin: 0; font-size: 3rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-        p.subtitle { font-size: 1.2rem; opacity: 0.9; margin-top: 10px; }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        .description {
-            background: #1e1e1e;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 40px;
-            border-left: 5px solid var(--primary);
-            text-align: left;
-        }
-
-        .screenshots {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-bottom: 50px;
-        }
-
-        /* Moldura de celular para os prints */
-        .phone-frame {
-            width: 200px; /* Largura do print */
-            height: 400px; /* Altura do print */
-            border: 8px solid #333;
-            border-radius: 20px;
-            overflow: hidden;
-            background-color: #000;
-            position: relative;
-        }
-        .phone-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .download-area {
-            background-color: #1c1c2e;
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid #444;
-        }
-
-        .btn-download {
-            background-color: #27ae60;
-            color: white;
-            padding: 15px 40px;
-            text-decoration: none;
-            font-size: 1.5rem;
-            border-radius: 50px;
-            font-weight: bold;
-            display: inline-block;
-            transition: transform 0.2s, background 0.2s;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .btn-download:hover {
-            transform: scale(1.05);
-            background-color: #2ecc71;
-        }
-
-        .qr-box {
-            background: white;
-            padding: 15px;
-            display: inline-block;
-            border-radius: 10px;
-        }
-        .qr-box img {
-            display: block;
-        }
-
-        footer {
-            margin-top: 50px;
-            padding: 20px;
-            color: #777;
-            font-size: 0.9rem;
-        }
+        /* CSS MANTIDO IGUAL AO ANTERIOR */
+        :root { --primary: #8A2BE2; --secondary: #00d2ff; --dark: #0f0f12; --card-bg: #1e1e24; --text: #f4f4f4; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background-color: var(--dark); color: var(--text); text-align: center; overflow-x: hidden; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 10%, #2a1a4a 0%, var(--dark) 60%); z-index: -1; }
+        header { background: rgba(30, 30, 36, 0.8); backdrop-filter: blur(10px); padding: 80px 20px; border-bottom: 1px solid #333; }
+        h1 { margin: 0; font-size: 3.5rem; background: linear-gradient(90deg, #fff, #8A2BE2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+        p.subtitle { font-size: 1.3rem; color: #aaa; margin-top: 15px; font-weight: 300; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+        .description { background: var(--card-bg); padding: 40px; border-radius: 20px; margin-bottom: 60px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: left; border-top: 3px solid var(--primary); }
+        .description h2 { color: var(--secondary); margin-top: 0; }
+        .description p { line-height: 1.6; font-size: 1.1rem; color: #ccc; }
+        .tech-section { margin-bottom: 60px; }
+        .tech-section h3 { margin-bottom: 30px; font-size: 1.8rem; }
+        .tech-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .tech-card { background: #252530; width: 120px; height: 120px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s ease; cursor: pointer; border: 1px solid #333; }
+        .tech-card i { font-size: 3rem; margin-bottom: 10px; color: #fff; transition: color 0.3s; }
+        .tech-card span { font-size: 0.9rem; font-weight: bold; color: #aaa; }
+        .tech-card:hover { transform: translateY(-10px); background: #2a2a36; border-color: var(--primary); box-shadow: 0 10px 20px rgba(138, 43, 226, 0.2); }
+        .tech-card:hover i.colored { filter: brightness(1.2); }
+        .screenshots { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 60px; }
+        .phone-frame { width: 220px; height: 440px; border: 10px solid #111; border-radius: 30px; overflow: hidden; background-color: #000; box-shadow: 0 20px 40px rgba(0,0,0,0.6); transition: transform 0.3s; }
+        .phone-frame:hover { transform: scale(1.02); }
+        .phone-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .download-area { background: linear-gradient(145deg, #1c1c2e, #161625); padding: 50px; border-radius: 25px; border: 1px solid #333; position: relative; overflow: hidden; }
+        .download-area::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(138,43,226,0.1) 0%, rgba(0,0,0,0) 70%); z-index: 0; pointer-events: none; }
+        .btn-download { background: linear-gradient(90deg, #27ae60, #2ecc71); color: white; padding: 18px 50px; text-decoration: none; font-size: 1.4rem; border-radius: 50px; font-weight: bold; display: inline-block; transition: all 0.3s; margin-bottom: 40px; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4); position: relative; z-index: 1; }
+        .btn-download:hover { transform: translateY(-3px); box-shadow: 10px 25px rgba(39, 174, 96, 0.6); }
+        .qr-box { background: white; padding: 15px; display: inline-block; border-radius: 15px; position: relative; z-index: 1; }
+        .qr-box img { display: block; }
+        footer { margin-top: 80px; padding: 30px; color: #555; font-size: 0.9rem; border-top: 1px solid #222; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>RPG Saúde 🛡️</h1>
-    <p class="subtitle">Gamificação e Bem-estar na palma da sua mão</p>
+    <p class="subtitle">Transforme sua rotina saudável em uma aventura épica</p>
 </header>
 
 <div class="container">
 
     <div class="description">
-        <h2>Sobre o Projeto</h2>
+        <h2>🚀 Sobre o Projeto</h2>
         <p>
-            O <strong>RPG Saúde</strong> é uma aplicação mobile inovadora desenvolvida com React Native,
-            que transforma hábitos saudáveis em uma jornada épica de RPG.
+            O <strong>RPG Saúde</strong> não é apenas mais um app de fitness. É uma plataforma gamificada
+            onde cada copo de água bebido e cada caloria queimada se transforma em XP para o seu personagem.
+            Enfrente desafios, suba no ranking e vença Dungeons com seus amigos em tempo real.
         </p>
-        <p>
-            O usuário cria um avatar, entra em "Dungeons" (Grupos de Desafio) e ganha XP e Moedas
-            ao cumprir metas reais como hidratação, controle de IMC e exercícios físicos.
-            Todo o progresso é sincronizado com um back-end robusto em Java/Spring Boot.
-        </p>
-        <p><strong>Tecnologias:</strong> React Native, TypeScript, Java, Spring Boot, PostgreSQL.</p>
+    </div>
+
+    <div class="tech-section">
+        <h3>Tecnologias Utilizadas</h3>
+        <div class="tech-grid">
+            <div class="tech-card"><i class="devicon-react-original colored"></i><span>React Native</span></div>
+            <div class="tech-card"><i class="devicon-typescript-plain colored"></i><span>TypeScript</span></div>
+            <div class="tech-card"><i class="devicon-java-plain colored"></i><span>Java 21</span></div>
+            <div class="tech-card"><i class="devicon-spring-original colored"></i><span>Spring Boot</span></div>
+            <div class="tech-card"><i class="devicon-jenkins-line colored"></i><span>Jenkins</span></div>
+        </div>
     </div>
 
     <div class="screenshots">
         <div class="phone-frame">
-            <img src="print1.jfif" alt="Tela Inicial do App" onerror="this.src='https://via.placeholder.com/200x400?text=Print+Home'">
+            <img src="assets/print1.jfif" alt="Tela Inicial" onerror="this.src='https://via.placeholder.com/220x440?text=Print+Home'">
         </div>
         <div class="phone-frame">
-            <img src="print2.jfif" alt="Tela de IMC" onerror="this.src='https://via.placeholder.com/200x400?text=Print+Ranking'">
+            <img src="assets/print2.jfif" alt="Tela de Status" onerror="this.src='https://via.placeholder.com/220x440?text=Print+Status'">
         </div>
         <div class="phone-frame">
-            <img src="print3.jfif" alt="Tela de Grupos" onerror="this.src='https://via.placeholder.com/200x400?text=Print+Agua'">
+            <img src="assets/print3.jfif" alt="Tela de Dungeon" onerror="this.src='https://via.placeholder.com/220x440?text=Print+Dungeon'">
         </div>
     </div>
 
     <div class="download-area">
-        <h3>Baixe agora o App (Android)</h3>
-        <p>Clique no botão abaixo ou escaneie o QR Code com seu celular.</p>
-
-        <br>
+        <h3 style="margin-top: 0;">📲 Baixe agora (Android)</h3>
+        <p style="color: #aaa; margin-bottom: 30px;">Instale o APK diretamente e comece sua jornada.</p>
 
         <a href="rpgsaude.apk" class="btn-download" download>
-            📥 Baixar APK
+            <span style="margin-right: 10px;">📥</span> Download APK
         </a>
 
         <br>
 
         <div class="qr-box">
-            <img src="qrcode.png" alt="QR Code Download" width="200" height="200">
+            <img src="assets/qrcode.png" alt="QR Code" width="180" height="180">
         </div>
-        <p style="color: #aaa; margin-top: 10px; font-size: 0.9rem;">
-            Link direto: http://academico3.rj.senac.br/rgpsaude/rpgsaude.apk
+
+        <p style="color: #666; margin-top: 15px; font-size: 0.85rem; word-break: break-all;">
+            Link direto: http://academico3.rj.senac.br/rpgsaude/rpgsaude.apk
         </p>
     </div>
 
 </div>
 
 <footer>
-    Desenvolvido para o Projeto Final de Mobile - Senac RJ
+    <p>Desenvolvido por <strong>Lucas Nunes</strong> | Senac RJ</p>
+    <p>© 2025 RPG Saúde - Todos os direitos reservados.</p>
 </footer>
 
 </body>
