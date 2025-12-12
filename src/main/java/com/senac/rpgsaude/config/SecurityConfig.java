@@ -14,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.List; // Usando List.of (mais moderno)
+import java.util.List;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -27,8 +27,9 @@ public class SecurityConfig {
     private UserAuthenticationFilter userAuthenticationFilter;
 
     // --- 1. Endpoints ABERTOS (Públicos) ---
-    // NOTA: Não precisa colocar /rpgsaude aqui, pois o Spring já remove o contexto.
+    // Inclui versões com e sem "/rpgsaude" para compatibilidade total
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED = {
+            // -- Padrão (Localhost) --
             "/users/login",
             "/users/criar",
             "/v3/api-docs/**",
@@ -39,26 +40,49 @@ public class SecurityConfig {
             "/assets/**",
             "/static/**",
             "/favicon.ico",
-            // IMPORTANTE: Adicionei as extensões de volta para o site funcionar!
             "/*.apk",
             "/*.png",
             "/*.jpg",
-            "/*.jpeg",
-            "/*.jfif",
             "/css/**",
             "/js/**",
-            "/error"
+            "/error", // Importante liberar erro
+
+            // -- Servidor Faculdade (com prefixo /rpgsaude) --
+            "/rpgsaude/users/login",
+            "/rpgsaude/users/criar",
+            "/rpgsaude/v3/api-docs/**",
+            "/rpgsaude/swagger-ui/**",
+            "/rpgsaude/swagger-ui.html",
+            "/rpgsaude/",
+            "/rpgsaude/index.html",
+            "/rpgsaude/assets/**",
+            "/rpgsaude/static/**",
+            "/rpgsaude/favicon.ico",
+            "/rpgsaude/*.apk",
+            "/rpgsaude/*.png",
+            "/rpgsaude/*.jpg",
+            "/rpgsaude/css/**",
+            "/rpgsaude/js/**",
+            "/rpgsaude/error"
     };
 
     // --- 2. Endpoints USER ---
     public static final String [] ENDPOINTS_USER = {
             "/users/atualizar/{id}",
             "/users/listarPorId/{id}",
-            "/api/avatar/**",     // DICA: Use ** para facilitar, libera tudo de avatar
-            "/api/dungeon/**",    // Libera tudo de dungeon
+            "/api/avatar/**",
+            "/api/dungeon/**",
             "/api/desafio/**",
             "/api/recompensa/listar",
-            "/api/recompensa/listarPorId/{id}"
+            "/api/recompensa/listarPorId/{id}",
+            // Prefixo
+            "/rpgsaude/users/atualizar/{id}",
+            "/rpgsaude/users/listarPorId/{id}",
+            "/rpgsaude/api/avatar/**",
+            "/rpgsaude/api/dungeon/**",
+            "/rpgsaude/api/desafio/**",
+            "/rpgsaude/api/recompensa/listar",
+            "/rpgsaude/api/recompensa/listarPorId/{id}"
     };
 
     // --- 3. Endpoints ADMIN ---
@@ -67,7 +91,13 @@ public class SecurityConfig {
             "/users/deletar/{id}",
             "/api/recompensa/criar",
             "/api/recompensa/atualizar/{id}",
-            "/api/recompensa/deletar/{id}"
+            "/api/recompensa/deletar/{id}",
+            // Prefixo
+            "/rpgsaude/users/listar",
+            "/rpgsaude/users/deletar/{id}",
+            "/rpgsaude/api/recompensa/criar",
+            "/rpgsaude/api/recompensa/atualizar/{id}",
+            "/rpgsaude/api/recompensa/deletar/{id}"
     };
 
     @Bean
@@ -77,14 +107,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. FORÇA A LIBERAÇÃO DO LOGIN (Garante que é POST)
-                        .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/users/criar").permitAll()
+                        // 1. FORÇA A LIBERAÇÃO DO LOGIN (Normal e Prefixo)
+                        .requestMatchers(HttpMethod.POST, "/users/login", "/rpgsaude/users/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users/criar", "/rpgsaude/users/criar").permitAll()
 
-                        // 2. Libera o resto dos arquivos públicos (Site, Swagger)
+                        // 2. Libera o resto dos arquivos públicos
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
 
-                        // Libera OPTIONS (necessário para o App não dar erro de CORS)
+                        // Libera OPTIONS geral
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // 3. Rotas de ADMIN
@@ -96,23 +126,8 @@ public class SecurityConfig {
                         // 5. O resto exige login
                         .anyRequest().authenticated()
                 )
-                // Adiciona o filtro, mas o Spring Security cuida para não rodar nas rotas permitAll
                 .addFilterBefore(userAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        // Configuração permissiva para evitar dor de cabeça com React Native
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("*")); // Libera todos os headers
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 
     @Bean
@@ -123,5 +138,17 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT"));
+        configuration.setAllowedHeaders(List.of("*"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
