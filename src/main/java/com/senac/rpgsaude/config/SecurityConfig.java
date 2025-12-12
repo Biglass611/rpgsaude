@@ -46,7 +46,8 @@ public class SecurityConfig {
             "/*.jpeg",
             "/*.jfif",
             "/css/**",
-            "/js/**"
+            "/js/**",
+            "/error"
     };
 
     // --- 2. Endpoints USER ---
