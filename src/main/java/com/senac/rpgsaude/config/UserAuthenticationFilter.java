@@ -2,9 +2,8 @@ package com.senac.rpgsaude.config;
 
 import com.senac.rpgsaude.entity.Usuario;
 import com.senac.rpgsaude.repository.UsuarioRepository;
-import com.senac.rpgsaude.service.UserService.JwtTokenService; // Import correto do seu projeto
-import com.senac.rpgsaude.service.UserService.UserDetailsImpl; // Import correto do seu projeto
-
+import com.senac.rpgsaude.service.UserService.JwtTokenService;
+import com.senac.rpgsaude.service.UserService.UserDetailsImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher; // IMPORTANTE: Importação necessária
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -30,34 +30,55 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Verifica se o endpoint requer autenticação antes de processar
-        if (checkIfEndpointIsNotPublic(request)) {
-            String token = recoveryToken(request);
+        // Se entrou aqui, é porque deve validar (não é rota pública)
+        String token = recoveryToken(request);
 
-            if (token != null) {
-                // Valida o Token e pega o email (Subject)
+        if (token != null) {
+            try {
                 String subject = jwtTokenService.getSubjectFromToken(token);
+                // Busca usuário. Se não achar, lança exceção (catch abaixo pega)
+                Usuario usuario = usuarioRepository.findByEmail(subject)
+                        .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 
-                // Busca o usuário no banco (Get() pode lançar exceção se não achar, ideal tratar ou usar orElseThrow)
-                Usuario usuario = usuarioRepository.findByEmail(subject).orElseThrow(() -> new RuntimeException("Usuário não encontrado no token."));
-
-                // Cria o UserDetailsImpl (Wrapper)
                 UserDetailsImpl userDetails = new UserDetailsImpl(usuario);
+                Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
 
-                // Cria a autenticação do Spring
-                Authentication authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
-
-                // Salva no contexto (Logado!)
+                // Autentica no contexto
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                // Se o endpoint é privado e não tem token, lança erro (ou deixa o Spring barrar depois)
-                // Geralmente deixamos passar null para o Spring Security decidir negar o acesso,
-                // mas seguindo a lógica da sua amiga:
-                throw new RuntimeException("O token está ausente.");
+            } catch (Exception e) {
+                // Se o token for inválido, malformado ou usuário não existe:
+                // Apenas ignoramos e deixamos a requisição seguir "sem autenticação".
+                // O Spring Security bloqueará logo em seguida se a página exigir login.
+                // Isso evita erros 500 desnecessários.
             }
         }
+
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Diz ao filtro para NÃO rodar (retorna true) se for endpoint público.
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        // Remove o Context Path (ex: /rpgsaude) da URL para bater com a lista do SecurityConfig
+        String path = request.getRequestURI();
+        if (request.getContextPath() != null && path.startsWith(request.getContextPath())) {
+            path = path.substring(request.getContextPath().length());
+        }
+
+        // Se o path ficou vazio (raiz do projeto), considera "/"
+        if (path.isEmpty()) {
+            path = "/";
+        }
+
+        AntPathMatcher matcher = new AntPathMatcher();
+        String finalPath = path;
+
+        // Verifica se bate com a lista de liberados usando Matcher correto (aceita *.apk, **, etc)
+        // Retorna TRUE se for para PULAR o filtro (ou seja, se for público)
+        return Arrays.stream(SecurityConfig.ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED)
+                .anyMatch(pattern -> matcher.match(pattern, finalPath));
     }
 
     private String recoveryToken(HttpServletRequest request) {
@@ -66,14 +87,5 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
             return authorizationHeader.replace("Bearer ", "");
         }
         return null;
-    }
-
-    private boolean checkIfEndpointIsNotPublic(HttpServletRequest request) {
-        String requestURI = request.getRequestURI();
-
-        // CORREÇÃO AQUI: Mudamos de SecurityConfiguration para SecurityConfig
-        return Arrays.stream(SecurityConfig.ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).noneMatch(publicEndpoint ->
-                requestURI.startsWith(publicEndpoint.replace("/**", ""))
-        );
     }
 }
