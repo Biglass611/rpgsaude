@@ -26,7 +26,7 @@ pipeline {
                     def appName = 'rpgsaude'
                     def imageTag = "${appName}:${env.BUILD_ID}"
 
-		   			//dir('Rpgsaude') {
+		   			//dir('rpgsaude') {
 	                    // Construir a imagem Docker
     	                sh "docker build -t ${imageTag} ."
 				   //}
