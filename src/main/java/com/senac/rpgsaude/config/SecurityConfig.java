@@ -14,6 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.Arrays;
+import java.util.List;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -21,54 +27,100 @@ public class SecurityConfig {
     @Autowired
     private UserAuthenticationFilter userAuthenticationFilter;
 
+    // 1. Endpoints ABERTOS (Públicos)
+    // ADICIONEI AS ROTAS DO SITE AQUI EMBAIXO
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED = {
-            "/users/login", // Endpoint de login
-            "/users",       // Endpoint de criação de usuário (registro)
-            "/h2-console/**", // Adicionei /** para garantir acesso a todos os recursos do H2
-            // 🔓 Swagger/OpenAPI UI
+            "/users/login",
+            "/users/criar",
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/swagger-ui.html"
+            "/swagger-ui.html",
+            "/",                 // Raiz
+            "/index.html",       // Arquivo principal do site
+            "/rpgsaude/**",      // Pasta específica que você mostrou no print
+            "/assets/**",        // CSS e JS
+            "/static/**",
+            "/favicon.ico"
     };
 
-    // Endpoints que requerem autenticação para serem acessados
-    public static final String [] ENDPOINTS_WITH_AUTHENTICATION_REQUIRED = {
-            "/users/test",
-            "/install",
-            "/index.html",
-            "/install.html",
-    };
-
-    // Endpoints que só podem ser acessados por usuários com permissão de cliente
+    // 2. Endpoints USER
     public static final String [] ENDPOINTS_USER = {
-            "/users/test/user"
+            "/users/atualizar/{id}",
+            "/users/listarPorId/{id}",
+            "/api/avatar/listar",
+            "/api/avatar/listarPorId/{id}",
+            "/api/avatar/criar",
+            "/api/avatar/atualizar/{id}",
+            "/api/avatar/deletar/{id}",
+            "/api/avatar/{id}/adicionar-moedas",
+            "/api/avatar/{id}/atualizar-atributos",
+            "/api/dungeon/listar",
+            "/api/dungeon/listarPorId/{id}",
+            "/api/dungeon/criar",
+            "/api/dungeon/atualizar/{id}",
+            "/api/dungeon/deletar/{id}",
+            "/api/dungeon/ranking/{desafioId}",
+            "/api/desafio/listar",
+            "/api/desafio/listarPorId/{id}",
+            "/api/recompensa/listar",
+            "/api/recompensa/listarPorId/{id}"
     };
 
-    // Endpoints que só podem ser acessados por usuários com permissão de administrador
+    // 3. Endpoints ADMIN
     public static final String [] ENDPOINTS_ADMIN = {
-            "/users/test/administrator"
+            "/users/listar",
+            "/users/deletar/{id}",
+            "/api/desafio/criar",
+            "/api/desafio/deletar/{id}",
+            "/api/recompensa/criar",
+            "/api/recompensa/atualizar/{id}",
+            "/api/recompensa/deletar/{id}"
     };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable()) // Desabilita CSRF (padrão para APIs REST stateless)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Define como Stateless (sem sessão no servidor)
+        return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 1. Libera rotas públicas (Login, Swagger e SITE agora)
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permite pre-flight requests (CORS/Swagger)
-                        .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMINISTRATOR")
-                        .requestMatchers(ENDPOINTS_USER).hasRole("USER")
-                        .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_REQUIRED).authenticated()
-                        // MUDANÇA IMPORTANTE AQUI:
-                        // "authenticated()" permite que qualquer outra rota (como /notas, /pastas)
-                        // seja acessada se o token for válido. "denyAll()" bloquearia tudo.
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 2. Rotas de ADMIN
+                        .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMIN")
+
+                        // 3. Rotas de USER
+                        .requestMatchers(ENDPOINTS_USER).authenticated()
+
+                        // 4. Qualquer outra rota também exige autenticação
                         .anyRequest().authenticated()
                 )
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // Necessário para o H2 Console abrir
-                .addFilterBefore(userAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(userAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
 
-        return http.build();
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Libera qualquer origem (Celular, Web, etc)
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+
+        // Libera todos os métodos
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // Libera headers importantes
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token"));
+
+        // Se der erro de credenciais com allowOrigins "*", comente a linha abaixo:
+        // configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
     @Bean
