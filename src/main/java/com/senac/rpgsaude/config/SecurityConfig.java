@@ -14,8 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.List; // Usando List.of (mais moderno)
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -27,51 +26,44 @@ public class SecurityConfig {
     @Autowired
     private UserAuthenticationFilter userAuthenticationFilter;
 
-    // 1. Endpoints ABERTOS (Públicos)
-    // ADICIONEI AS ROTAS DO SITE AQUI EMBAIXO
+    // --- 1. Endpoints ABERTOS (Públicos) ---
+    // NOTA: Não precisa colocar /rpgsaude aqui, pois o Spring já remove o contexto.
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED = {
             "/users/login",
             "/users/criar",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/",                 // Raiz
-            "/index.html",       // Arquivo principal do site
-            "/rpgsaude/**",      // Pasta específica que você mostrou no print
-            "/assets/**",        // CSS e JS
+            "/",
+            "/index.html",
+            "/assets/**",
             "/static/**",
-            "/favicon.ico"
+            "/favicon.ico",
+            // IMPORTANTE: Adicionei as extensões de volta para o site funcionar!
+            "/*.apk",
+            "/*.png",
+            "/*.jpg",
+            "/*.jpeg",
+            "/*.jfif",
+            "/css/**",
+            "/js/**"
     };
 
-    // 2. Endpoints USER
+    // --- 2. Endpoints USER ---
     public static final String [] ENDPOINTS_USER = {
             "/users/atualizar/{id}",
             "/users/listarPorId/{id}",
-            "/api/avatar/listar",
-            "/api/avatar/listarPorId/{id}",
-            "/api/avatar/criar",
-            "/api/avatar/atualizar/{id}",
-            "/api/avatar/deletar/{id}",
-            "/api/avatar/{id}/adicionar-moedas",
-            "/api/avatar/{id}/atualizar-atributos",
-            "/api/dungeon/listar",
-            "/api/dungeon/listarPorId/{id}",
-            "/api/dungeon/criar",
-            "/api/dungeon/atualizar/{id}",
-            "/api/dungeon/deletar/{id}",
-            "/api/dungeon/ranking/{desafioId}",
-            "/api/desafio/listar",
-            "/api/desafio/listarPorId/{id}",
+            "/api/avatar/**",     // DICA: Use ** para facilitar, libera tudo de avatar
+            "/api/dungeon/**",    // Libera tudo de dungeon
+            "/api/desafio/**",
             "/api/recompensa/listar",
             "/api/recompensa/listarPorId/{id}"
     };
 
-    // 3. Endpoints ADMIN
+    // --- 3. Endpoints ADMIN ---
     public static final String [] ENDPOINTS_ADMIN = {
             "/users/listar",
             "/users/deletar/{id}",
-            "/api/desafio/criar",
-            "/api/desafio/deletar/{id}",
             "/api/recompensa/criar",
             "/api/recompensa/atualizar/{id}",
             "/api/recompensa/deletar/{id}"
@@ -84,19 +76,26 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Libera rotas públicas (Login, Swagger e SITE agora)
+                        // 1. FORÇA A LIBERAÇÃO DO LOGIN (Garante que é POST)
+                        .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users/criar").permitAll()
+
+                        // 2. Libera o resto dos arquivos públicos (Site, Swagger)
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
+
+                        // Libera OPTIONS (necessário para o App não dar erro de CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // 2. Rotas de ADMIN
+                        // 3. Rotas de ADMIN
                         .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMIN")
 
-                        // 3. Rotas de USER
+                        // 4. Rotas de USER
                         .requestMatchers(ENDPOINTS_USER).authenticated()
 
-                        // 4. Qualquer outra rota também exige autenticação
+                        // 5. O resto exige login
                         .anyRequest().authenticated()
                 )
+                // Adiciona o filtro, mas o Spring Security cuida para não rodar nas rotas permitAll
                 .addFilterBefore(userAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -105,21 +104,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Libera qualquer origem (Celular, Web, etc)
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-
-        // Libera todos os métodos
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-
-        // Libera headers importantes
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token"));
-
-        // Se der erro de credenciais com allowOrigins "*", comente a linha abaixo:
-        // configuration.setAllowCredentials(true);
+        // Configuração permissiva para evitar dor de cabeça com React Native
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("*")); // Libera todos os headers
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
 
